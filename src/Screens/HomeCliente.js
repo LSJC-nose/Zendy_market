@@ -182,7 +182,7 @@ export default function Home() {
 
         <View style={styles.cuadro}>
           <Text style={styles.tituloCuadro}>Ver ofertas ¡quizás te interesen!</Text>
-          <TouchableOpacity style={styles.boton} onPress={() => navigation.navigate('VistaProductos')}>
+          <TouchableOpacity style={styles.boton} onPress={() => navigation.navigate('DetailHome')}>
             <Text style={styles.textoBoton}>Ver →</Text>
           </TouchableOpacity>
         </View>
