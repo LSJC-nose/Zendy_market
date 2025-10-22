@@ -9,15 +9,43 @@ import {
   FlatList,
   Image,
   TouchableWithoutFeedback,
+  Alert,
 } from 'react-native';
 import { Button } from 'react-native';
 import Foundation from '@expo/vector-icons/Foundation';
 import { useNavigation } from '@react-navigation/native';
 
 
+
 const Users = () => {
   const navigation = useNavigation();
+
   const [modalVisible, setModalVisible] = useState(false);
+
+  const handleLogout = () => {
+     Alert.alert(
+       'Cerrar Sesión',
+       '¿Estás seguro de que quieres cerrar sesión?',
+       [
+         { text: 'Cancelar', style: 'cancel' },
+         {
+           text: 'Cerrar Sesión',
+           style: 'destructive',
+           onPress: async () => {
+             try {
+              
+               navigation.reset({
+                 index: 0,
+                 routes: [{ name: 'Login' }],
+               });
+             } catch (error) {
+               console.error('Error al cerrar sesión:', error);
+             }
+           },
+         },
+       ]
+     );
+   };
 
   return (
     <View style={styles.container}>
@@ -42,10 +70,10 @@ const Users = () => {
       <View style={styles.contenedor2}>
         <Text style={styles.texto}>Idiomas</Text>
         <Text style={styles.texto}>Políticas de privacidad</Text>
-        <Button
-          title="¿Quieres vender tus productos?"
-          onPress={() => setModalVisible(true)}
-        />
+     
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+          <Text style={styles.logoutText}>Cerrar Sesión</Text>
+        </TouchableOpacity>
       </View>
 
       <Modal
@@ -68,7 +96,7 @@ const Users = () => {
                     style={styles.texto_modal2}
                     onPress={() => {
                       setModalVisible(false);
-                      navigation.navigate('Suscripcion');
+                      navigation.navigate('Tienda');
                     }}
                   >
                     <Text style={styles.textoBoton}>Registra tu tienda →</Text>
@@ -155,6 +183,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: 50,
     height: 50,
+  },
+  logoutButton: {
+    backgroundColor: '#ff4444',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  logoutText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
 

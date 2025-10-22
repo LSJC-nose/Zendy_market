@@ -3,7 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { AntDesign } from '@expo/vector-icons';
-
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 // Importa tus componentes de pantalla
 import Home from './src/Screens/HomeCliente';
 import Settings from './src/Screens/Settings';
@@ -14,10 +14,9 @@ import LoginTienda from './src/Componentes/LoginTienda';
 import Suscripcion from './src/Screens/Suscripcion';
 import Tienda from './src/Screens/Tienda';
 import Pagos from './src/Screens/Pagos';
-import LoadingScreen from './src/Screens/LoadingScreen';
 import CRUDAdmon from './src/Screens/CRUDAdmon';
 import Users from './src/Screens/Users'
-
+import Categoria from './src/Screens/Categoria';
 // Declaración de navegadores
 const Tab = createBottomTabNavigator();
 const StackNav = createStackNavigator();
@@ -112,6 +111,16 @@ function MyTabsAdmon() {
                 options={{
                     tabBarLabel: 'Tienda',
                     tabBarIcon: ({ color }) => <AntDesign name="shop" size={30} color={color} />,
+                }}
+            />
+
+
+            <Tab.Screen
+                name="Registra tu categoria"
+                component={Categoria}
+                options={{
+                    tabBarLabel: 'categorias',
+                    tabBarIcon: ({ color }) => <MaterialIcons name="category" size={24} color="black" />,
                 }}
             />
 

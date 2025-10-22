@@ -14,26 +14,23 @@ const LoginTienda = ({ onLoginSuccess }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const manejarLogin = async () => {
-    if (!email || !password) {
-      Alert.alert('Error', 'Por favor completa ambos campos.');
+  const acceder = () => {
+    if (!email.trim() || !password.trim()) {
+      Alert.alert('Campos vacíos', 'Por favor ingrese su correo y contraseña.');
       return;
     }
 
-    setLoading(true);
+    //Autenticación básica 
+    if (email === 'cliente@gmail.com' && password === '12345') {
+      Alert.alert('Bienvenido', 'Inicio de sesión exitoso');
+      navigation.replace('MyTabsCliente') // ir a la nav del cliente
+    } else if (email === 'admin@gmail.com' && password === '12345') {
+      Alert.alert('Sea bienvenido', 'Admin');
+      navigation.replace('MyTabsAdmon'); // ir a la nav del administrador
 
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      navigation.navigate('Suscripcion');
-      if (onLoginSuccess) onLoginSuccess();
-    } catch (error) {
-      let mensaje = 'Error al iniciar sesión.';
-      if (error.code === 'auth/invalid-email') mensaje = 'Correo inválido.';
-      if (error.code === 'auth/user-not-found') mensaje = 'Usuario no encontrado.';
-      if (error.code === 'auth/wrong-password') mensaje = 'Contraseña incorrecta.';
-      Alert.alert('Error', mensaje);
-    } finally {
-      setLoading(false);
+    }
+    else {
+      Alert.alert('Error', 'Correo o contraseña incorrectos');
     }
   };
 
@@ -77,6 +74,7 @@ const LoginTienda = ({ onLoginSuccess }) => {
           <TextInput
             style={styles.input}
             placeholder="Correo electrónico"
+            placeholderTextColor="#aaa"
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
@@ -85,17 +83,19 @@ const LoginTienda = ({ onLoginSuccess }) => {
           <TextInput
             style={styles.input}
             placeholder="Contraseña"
+            placeholderTextColor="#aaa"
             value={password}
             onChangeText={setPassword}
             secureTextEntry
           />
           <Text>Olvidé mi contraseña</Text>
         </View>
-        <TouchableOpacity style={styles.boton} onPress={manejarLogin} disabled={loading}>
+
+        <TouchableOpacity style={styles.boton} onPress={acceder} disabled={loading}>
           {loading ? (
             <ActivityIndicator size="small" color="black" />
           ) : (
-            <Text style={styles.textoBoton}>Suscribirse</Text>
+            <Text style={styles.textoBoton}>Iniciar sesion</Text>
           )}
         </TouchableOpacity>
         <Text style={styles.textoCrearCuenta}>Si no tienes una cuenta, ¡crea una!</Text>
