@@ -2,11 +2,16 @@ import React, { useState, useRef } from 'react';
 import {
   Animated, PanResponder, TouchableOpacity, View, Text, TextInput, StyleSheet, Alert, Image
 } from 'react-native';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../database/firebaseConfig';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import { ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import appFirebase from '../database/firebaseConfig';
+import { collection, getFirestore, getDocs, query, where } from 'firebase/firestore';
+import { signInWithEmailAndPassword } from "firebase/auth";
+
+const db = getFirestore(appFirebase);
+import { auth } from '../database/firebaseConfig';
+
 
 const LoginTienda = ({ onLoginSuccess }) => {
   const [loading, setLoading] = useState(false);
@@ -14,25 +19,42 @@ const LoginTienda = ({ onLoginSuccess }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const acceder = () => {
-    if (!email.trim() || !password.trim()) {
-      Alert.alert('Campos vacíos', 'Por favor ingrese su correo y contraseña.');
-      return;
-    }
+   const acceder = async () => {
+        if (!email.trim() || !password.trim()) {
+            Alert.alert('Campos vacíos', 'Por favor ingrese su correo y contraseña.');
+            return;
+        }
+        try {
 
-    //Autenticación básica 
-    if (email === 'cliente@gmail.com' && password === '12345') {
-      Alert.alert('Bienvenido', 'Inicio de sesión exitoso');
-      navigation.replace('MyTabsCliente') // ir a la nav del cliente
-    } else if (email === 'admin@gmail.com' && password === '12345') {
-      Alert.alert('Sea bienvenido', 'Admin');
-      navigation.replace('MyTabsAdmon'); // ir a la nav del administrador
+            //autenticación del usuario
+            const userCredential = await signInWithEmailAndPassword(auth, email, password);
+            const user = userCredential.user;
 
-    }
-    else {
-      Alert.alert('Error', 'Correo o contraseña incorrectos');
-    }
-  };
+            //Consulta a la colección usuario
+            const q = query(
+                collection(db, 'Roles'), where('correo', '==', email.trim())
+            );
+            const querySnapshot = await getDocs(q);
+            let rol = "";
+            querySnapshot.forEach((doc) => {
+                rol = doc.data().rol;
+            });
+            //finaliza la consulta
+
+            //Verificación del rol para la navegación 
+
+            if (rol === "Cliente")
+               navigation.replace('MyTabsCliente');// ir a la nav del cliente
+            else if (rol === "Administrador")
+                navigation.replace('MyTabsAdmon'); // ir a la nav del administrador
+        
+        } catch (error) {
+            Alert.alert("Error", "Correo o contraseña incorrectos");
+        }
+
+
+    };
+
 
   const translateY = useRef(new Animated.Value(300)).current;
   const panResponder = useRef(
