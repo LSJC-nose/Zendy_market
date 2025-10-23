@@ -8,6 +8,7 @@ import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import { ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
+
 const LoginTienda = ({ onLoginSuccess }) => {
   const [loading, setLoading] = useState(false);
   const navigation = useNavigation();
