@@ -3,8 +3,8 @@ import { View, StyleSheet, TouchableOpacity, Text, Image } from "react-native";
 import Entypo from '@expo/vector-icons/Entypo';
 import ModalRegistrarTienda from '../Componentes/ModalRegistrarTienda.js';
 import TarjetaTienda from "../Componentes/TarjetaTienda.js";
-import { collection, getDocs,deleteDoc,doc } from "firebase/firestore";
-import { db } from "../database/firebaseConfig.js"; 
+import { collection, getDocs, deleteDoc, doc } from "firebase/firestore";
+import { db } from "../database/firebaseConfig.js";
 
 
 export default function Tienda() {
@@ -30,13 +30,13 @@ export default function Tienda() {
 
     const eliminarTienda = async (id) => {
         try {
-          await deleteDoc(doc(db, "tienda", id));
-          await cargarDatos();
+            await deleteDoc(doc(db, "tienda", id));
+            await cargarDatos();
         } catch (error) {
-          console.error("Error al eliminar:", error)
+            console.error("Error al eliminar:", error)
         }
-      };
-    
+    };
+
 
     return (
         <View style={styles.container}>
@@ -50,9 +50,9 @@ export default function Tienda() {
                 recargarTiendas={cargarDatos}
 
             />
-            <TarjetaTienda 
-            eliminarTienda={eliminarTienda}
-            tienda={tiendas} />
+            <TarjetaTienda
+                eliminarTienda={eliminarTienda}
+                tienda={tiendas} />
         </View>
     );
 }
