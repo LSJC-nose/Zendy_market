@@ -3,6 +3,7 @@ import React, { useRef } from 'react';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import Categoria from '../Componentes/Categoria';
 import Producto from '../Componentes/Productos';
+import Notificaciones from '../Componentes/Notificaciones';
 
 import { useNavigation } from '@react-navigation/native';
 
@@ -39,8 +40,8 @@ export default function Home() {
     { id: 3, nombre: 'bicycle', texto: 'Sport' },
     { id: 4, nombre: 'gamepad', texto: 'Game' },
     { id: 5, nombre: 'camera', texto: 'Camera' },
-    { id: 5, nombre: 'laptop', texto: 'Laptop' },
-    { id: 5, nombre: 'apple', texto: 'Apple' },
+    { id: 6, nombre: 'laptop', texto: 'Laptop' },
+    { id: 7, nombre: 'apple', texto: 'Apple' },
   ];
 
   const Productos = [
@@ -117,7 +118,7 @@ export default function Home() {
       cora: 'heart',
     },
     {
-      id: 8,
+      id: 9,
       image: require('../../IMAGENES/cartera.png'),
       precio: '50',
       descripcion: 'Makeup travel bag',
@@ -126,7 +127,7 @@ export default function Home() {
       cora: 'heart',
     },
     {
-      id: 8,
+      id: 10,
       image: require('../../IMAGENES/cartera.png'),
       precio: '50',
       descripcion: 'Makeup travel bag',
@@ -135,7 +136,7 @@ export default function Home() {
       cora: 'heart',
     },
     {
-      id: 8,
+      id: 11,
       image: require('../../IMAGENES/cartera.png'),
       precio: '50',
       descripcion: 'Makeup travel bag',
@@ -144,7 +145,7 @@ export default function Home() {
       cora: 'heart',
     },
     {
-      id: 8,
+      id: 12,
       image: require('../../IMAGENES/cartera.png'),
       precio: '50',
       descripcion: 'Makeup travel bag',
@@ -235,6 +236,7 @@ export default function Home() {
           />
         </View>
       </Animated.View>
+      <Notificaciones />
     </View>
   )
 }

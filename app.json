@@ -1,5 +1,6 @@
 {
   "expo": {
+    "jsEngine": "hermes",
     "name": "navegacion",
     "slug": "navegacion",
     "version": "1.0.0",
@@ -12,6 +13,9 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+    "plugins": [
+      "expo-notifications"
+    ],
     "ios": {
       "supportsTablet": true
     },
@@ -20,7 +24,12 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "config": {
+        "notification": {
+          "channelId": "default"
+        }
+      }
     },
     "web": {
       "favicon": "./assets/favicon.png"
