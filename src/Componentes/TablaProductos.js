@@ -7,48 +7,52 @@ const TablaProductos = ({ productos, eliminarProducto, editarProducto }) => {
         <View style={styles.container}>
             <Text style={styles.titulo}>Tabla de Productos</Text>
 
-            <View style={[styles.fila, styles.encabezado]}>
-                <Text style={[styles.celda, styles.textoEncabezado]}>Nombre</Text>
-                <Text style={[styles.celda, styles.textoEncabezado]}>Precio</Text>
-                <Text style={[styles.celda, styles.textoEncabezado]}>Stock</Text>
-        
-                <Text style={[styles.celda, styles.textoEncabezado]}>Categoria</Text> 
-                <Text style={[styles.celda, styles.textoEncabezado]}>Imagen</Text>   
-                <Text style={[styles.celda, styles.textoEncabezado]}>Acciones</Text>
-            </View>
-
-            {/* Lista de productos */}
-            <ScrollView>
-                {productos.map((item) => (
-                    <View key={item.id} style={styles.fila}>
-                        <Text style={styles.celda}>{item.nombre}</Text>
-                        <Text style={styles.celda}>${item.precio}</Text>
-                        <Text style={styles.celda}>{item.stock}</Text>
-                        <Text style={styles.celda}>{item.Categoria}</Text>
-                        <View style={styles.celda}>
-                            {item.imagen ? (
-                                <Image
-                                    source={{ uri: item.imagen }}
-                                    style={{ width: 50, height: 50, resizeMode: 'contain' }}
-                                />
-                            ) : (
-                                <Text>No imagen</Text>
-                            )}
-                        </View>
-                        <View style={styles.celdaAcciones}>
-                            <BotonEliminarProducto
-                                id={item.id}
-                                eliminarProducto={eliminarProducto}
-                            />
-                            <TouchableOpacity
-                                style={styles.botonActualizar}
-                                onPress={() => editarProducto(item)}
-                            >
-                                <Text>🖊️</Text>
-                            </TouchableOpacity>
-                        </View>
+            <ScrollView horizontal>
+                <View>
+                    {/* Encabezado */}
+                    <View style={[styles.fila, styles.encabezado]}>
+                        <Text style={[styles.celda, styles.textoEncabezado, styles.colNombre]}>Nombre</Text>
+                        <Text style={[styles.celda, styles.textoEncabezado, styles.colPrecio]}>Precio</Text>
+                        <Text style={[styles.celda, styles.textoEncabezado, styles.colStock]}>Stock</Text>
+                        <Text style={[styles.celda, styles.textoEncabezado, styles.colCategoria]}>Categoría</Text>
+                        <Text style={[styles.celda, styles.textoEncabezado, styles.colImagen]}>Imagen</Text>
+                        <Text style={[styles.celda, styles.textoEncabezado, styles.colAcciones]}>Acciones</Text>
                     </View>
-                ))}
+
+                    {/* Lista de productos */}
+                    <ScrollView style={{ maxHeight: 400 }}>
+                        {productos.map((item) => (
+                            <View key={item.id} style={styles.fila}>
+                                <Text style={[styles.celda, styles.colNombre]}>{item.nombre}</Text>
+                                <Text style={[styles.celda, styles.colPrecio]}>${item.precio}</Text>
+                                <Text style={[styles.celda, styles.colStock]}>{item.stock}</Text>
+                                <Text style={[styles.celda, styles.colCategoria]}>{item.Categoria}</Text>
+                                <View style={[styles.celda, styles.colImagen]}>
+                                    {item.imagen ? (
+                                        <Image
+                                            source={{ uri: item.imagen }}
+                                            style={styles.imagen}
+                                        />
+                                    ) : (
+                                        <Text>No imagen</Text>
+                                    )}
+                                </View>
+                                <View style={[styles.celdaAcciones, styles.colAcciones]}>
+                                    <BotonEliminarProducto
+                                        id={item.id}
+                                        eliminarProducto={eliminarProducto}
+                                    />
+                                    <TouchableOpacity
+                                        style={styles.botonActualizar}
+                                        onPress={() => editarProducto(item)}
+                                    >
+                                        <Text>🖊️</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+                        ))}
+                    </ScrollView>
+                </View>
             </ScrollView>
         </View>
     );
@@ -56,52 +60,61 @@ const TablaProductos = ({ productos, eliminarProducto, editarProducto }) => {
 
 const styles = StyleSheet.create({
     container: {
-        marginLeft:-18,
-        width:400,
-        backgroundColor: "#ffffff",
+        
         flex: 1,
-        padding: 20,
-        alignSelf: "stretch"
+        backgroundColor: "#ffffff",
+        padding: 20
     },
     titulo: {
         fontSize: 22,
         fontWeight: "bold",
-        marginBottom: 10
+        marginBottom: 10,
+        textAlign: "center"
     },
     fila: {
         flexDirection: "row",
         borderBottomWidth: 1,
         borderColor: "#ccc",
-        paddingVertical: 6,
+        paddingVertical: 8,
         alignItems: "center"
     },
     encabezado: {
-        backgroundColor: "#d48d7b"
+        backgroundColor: "#d5f5f5ff"
     },
     celda: {
-        flex: 1,
         fontSize: 16,
-        textAlign: "center"
+        textAlign: "center",
+        paddingHorizontal: 6
+    },
+    textoEncabezado: {
+        fontWeight: "bold",
+        fontSize: 17
     },
     celdaAcciones: {
-        flex: 1,
         flexDirection: "row",
         justifyContent: "center",
         alignItems: "center"
     },
-    textoEncabezado: {
-        fontWeight: "bold",
-        fontSize: 17,
-        textAlign: "center"
-    },
     botonActualizar: {
-        padding: 4,
+        padding: 6,
         borderRadius: 5,
-        alignItems: "center",
-        alignSelf: "center",
         backgroundColor: "#facf7f",
         marginLeft: 8
-    }
+    },
+    imagen: {
+        width: 50,
+        height: 50,
+        resizeMode: 'contain',
+        alignSelf: 'center'
+    },
+
+    // Column widths
+    colNombre: { width: 120 },
+    colPrecio: { width: 80 },
+    colStock: { width: 80 },
+    colCategoria: { width: 100 },
+    colImagen: { width: 80 },
+    colAcciones: { width: 100 }
 });
 
 export default TablaProductos;

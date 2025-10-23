@@ -1,21 +1,47 @@
+// ../Componentes/Productos.js
 import React from 'react';
-import { View, Text, Image, StyleSheet } from 'react-native';
+import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 
-export default function Producto({explora, image, precio, descripcion, hora_mes, fondoColor, cora }) {
+export default function Producto({
+  image,
+  precio,
+  descripcion,
+  hora_mes,
+  explora,
+  fondoColor,
+  isFavorito = false,
+  onFavoritoPress = () => {},
+}) {
   return (
     <View style={styles.tarjeta}>
-      <View style={[styles.contenedor_imagen, { backgroundColor: fondoColor }]}>
-        <Image source={image} style={styles.imagen} />
+      {/* IMAGEN CON BORDE REDONDEADO Y RECORTADA */}
+      <View style={[styles.contenedorImagen, { backgroundColor: fondoColor }]}>
+        <Image
+          source={image}
+          style={styles.imagen}
+          resizeMode="cover"
+        />
       </View>
+
       <View style={styles.info}>
-        <View style={styles.cora_pre}>
-        <Text style={styles.precio}>${precio}</Text>
-        <FontAwesome5 name={cora} size={20} color="#6f6f77ff"/>
+        <View style={styles.precioYFavorito}>
+          <Text style={styles.precio}>${precio}</Text>
+          <TouchableOpacity onPress={onFavoritoPress}>
+            <FontAwesome5
+              name="heart"
+              size={20}
+              solid={isFavorito}
+              color={isFavorito ? '#e74c3c' : '#6f6f77ff'}
+            />
+          </TouchableOpacity>
         </View>
-        <Text style={styles.descripcion}>{descripcion}</Text>
-        <Text style={styles.mes_hora}>{hora_mes}</Text>
-         <Text style={styles.explora}>{explora}</Text>
+
+        <Text style={styles.descripcion} numberOfLines={2}>
+          {descripcion}
+        </Text>
+        <Text style={styles.stock}>{hora_mes} en stock</Text>
+        {explora ? <Text style={styles.explora}>{explora}</Text> : null}
       </View>
     </View>
   );
@@ -23,47 +49,53 @@ export default function Producto({explora, image, precio, descripcion, hora_mes,
 
 const styles = StyleSheet.create({
   tarjeta: {
-    backgroundColor: "#ffffffff",
+    backgroundColor: '#fff',
     borderRadius: 16,
     height: 230,
-    borderWidth: 2,
+    width: '100%',
+    borderWidth: 1,
     borderColor: '#e4e0e0ff',
+    overflow: 'hidden', // ← evita que la imagen se salga
   },
-  contenedor_imagen: {
-    borderTopLeftRadius: 10,
-    borderTopRightRadius: 10,
-    width: 186,
+  contenedorImagen: {
+    width: '100%',
     height: 128,
-    marginBottom: 10,
-    alignItems: "center",
-
-    overflow: 'hidden',
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    overflow: 'hidden', // ← RECORTA LA IMAGEN
   },
   imagen: {
     width: '100%',
     height: '100%',
   },
-
+  info: {
+    padding: 10,
+    flex: 1,
+  },
+  precioYFavorito: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
   precio: {
-    marginTop: 2,
-    marginLeft: 10,
-    margin: 6,
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
+    color: '#2c3e50',
   },
   descripcion: {
-    marginLeft: 10,
     fontSize: 14,
     color: '#555',
+    flex: 1,
   },
-  mes_hora: {
-    marginLeft: 10,
-    fontSize: 11, fontFamily: "Merriweather",
+  stock: {
+    fontSize: 11,
     color: '#999',
+    marginTop: 4,
   },
-  cora_pre:{
-flexDirection:"row",
-justifyContent:"space-between",
-marginRight:14,
-  }
+  explora: {
+    fontSize: 12,
+    color: '#3498db',
+    marginTop: 4,
+  },
 });
