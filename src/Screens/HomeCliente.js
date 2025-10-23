@@ -1,4 +1,3 @@
-compare esta vista // src/Screens/Home.js
 import React, { useRef, useEffect, useState, useMemo } from 'react';
 import {
   Text,
@@ -30,7 +29,7 @@ const { width } = Dimensions.get('window');
 
 export default function Home() {
   const [categorias, setCategorias] = useState([]);
-  const [productos,  setProductos] = useState([]);
+  const [productos, setProductos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [busqueda, setBusqueda] = useState('');
   const [favoritos, setFavoritos] = useState({});
@@ -130,7 +129,7 @@ export default function Home() {
 
         <View style={styles.cuadro}>
           <Text style={styles.tituloCuadro}>Ver ofertas ¡quizás te interesen!</Text>
-          <TouchableOpacity style={styles.boton} onPress={() => navigation.navigate('DetailHome')}>
+          <TouchableOpacity style={styles.boton} onPress={() => navigation.navigate('Ofertas')}>
             <Text style={styles.textoBoton}>Ver →</Text>
           </TouchableOpacity>
         </View>
@@ -150,12 +149,21 @@ export default function Home() {
               data={categoriasFiltradas}
               horizontal
               keyExtractor={(item) => item.id}
+              //cambios en el render para visualizar detalle producto
               renderItem={({ item }) => (
-                <CategoriaItem
-                  icon={item.icon || 'question-circle'}
-                  imagen={item.foto}
-                  texto={item.nombre}
-                />
+                <TouchableOpacity onPress={() => navigation.navigate('DetalleProducto', { producto: item })}>
+                  <View style={styles.tarjeta}>
+                    <Producto
+                      image={item.image}
+                      precio={item.precio}
+                      descripcion={item.descripcion}
+                      hora_mes={item.hora_mes}
+                      fondoColor={item.fondoColor}
+                      cora={item.cora}
+                      oferta={item.oferta}
+                    />
+                  </View>
+                </TouchableOpacity>
               )}
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.categoriasLista}

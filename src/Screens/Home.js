@@ -1,4 +1,4 @@
-import {  Text, Animated, PanResponder, StyleSheet, View, TextInput, FlatList, Image, TouchableOpacity } from 'react-native'
+import { Text, Animated, PanResponder, StyleSheet, View, TextInput, FlatList, Image, TouchableOpacity } from 'react-native'
 import React, { useRef } from 'react';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import Categoria from '../Componentes/Categoria';
@@ -9,29 +9,29 @@ import { useNavigation } from '@react-navigation/native';
 export default function Home() {
   const translateY = useRef(new Animated.Value(300)).current;
   const panResponder = useRef(
-  PanResponder.create({
-    onMoveShouldSetPanResponder: (_, gesture) => Math.abs(gesture.dy) > 10, // más sensible
-     onPanResponderRelease: (_, gesture) => {
-            if (gesture.dy < -30) {
-              // Deslizó hacia arriba → mostrar
-              Animated.spring(translateY, {
-                toValue: 0,
-                useNativeDriver: true,
-                speed: 20,
-                bounciness: 8,
-              }).start();
-            } else if (gesture.dy > 30) {
-              // Deslizó hacia abajo → ocultar
-              Animated.spring(translateY, {
-                toValue: 300,
-                useNativeDriver: true,
-                speed: 20,
-                bounciness: 8,
-              }).start();
-            }
-          },
-  })
-).current;
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (_, gesture) => Math.abs(gesture.dy) > 10, // más sensible
+      onPanResponderRelease: (_, gesture) => {
+        if (gesture.dy < -30) {
+          // Deslizó hacia arriba → mostrar
+          Animated.spring(translateY, {
+            toValue: 0,
+            useNativeDriver: true,
+            speed: 20,
+            bounciness: 8,
+          }).start();
+        } else if (gesture.dy > 30) {
+          // Deslizó hacia abajo → ocultar
+          Animated.spring(translateY, {
+            toValue: 300,
+            useNativeDriver: true,
+            speed: 20,
+            bounciness: 8,
+          }).start();
+        }
+      },
+    })
+  ).current;
 
   const Categorias = [
     { id: 1, nombre: 'book', texto: 'Book' },
@@ -182,13 +182,13 @@ export default function Home() {
 
         <View style={styles.cuadro}>
           <Text style={styles.tituloCuadro}>Ver ofertas ¡quizás te interesen!</Text>
-          <TouchableOpacity style={styles.boton} onPress={() => navigation.navigate('VistaProductos')}>
+          <TouchableOpacity style={styles.boton} onPress={() => navigation.navigate('Ofertas')}>
             <Text style={styles.textoBoton}>Ver →</Text>
           </TouchableOpacity>
         </View>
       </View>
 
-      
+
 
       <Animated.View
         style={[styles.panel, { transform: [{ translateY }] }]}

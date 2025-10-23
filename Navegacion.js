@@ -13,6 +13,8 @@ import LoginTienda from './src/Componentes/LoginTienda';
 import Suscripcion from './src/Screens/Suscripcion';
 import Tienda from './src/Screens/Tienda';
 import Pagos from './src/Screens/Pagos';
+import Ofertas from './src/Screens/OfertasScreen';
+import DetalleProductoScreen from './src/Screens/DetalleProductoScreen';
 
 const Tab = createBottomTabNavigator();
 const DetailsHomeNavigator = createStackNavigator();
@@ -36,6 +38,8 @@ function StackDetailHome() {
             <DetailsHomeNavigator.Screen name="DetailHome" component={vistaProductos} />
             <DetailsHomeNavigator.Screen name="AnotherDetailsHome" component={AnotherHome} />
             <DetailsHomeNavigator.Screen name="LoginTienda" component={LoginTienda} />
+            <DetailsHomeNavigator.Screen name="Ofertas" component={Ofertas} />
+            <DetailsHomeNavigator.Screen name="DetalleProducto" component={DetalleProductoScreen} />
         </DetailsHomeNavigator.Navigator>
     );
 }

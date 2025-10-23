@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, Image, StyleSheet } from 'react-native';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 
-export default function Producto({explora, image, precio, descripcion, hora_mes, fondoColor, cora }) {
+export default function Producto({ explora, image, precio, descripcion, hora_mes, fondoColor, cora, oferta }) {
   return (
     <View style={styles.tarjeta}>
       <View style={[styles.contenedor_imagen, { backgroundColor: fondoColor }]}>
@@ -10,12 +10,26 @@ export default function Producto({explora, image, precio, descripcion, hora_mes,
       </View>
       <View style={styles.info}>
         <View style={styles.cora_pre}>
-        <Text style={styles.precio}>${precio}</Text>
-        <FontAwesome5 name={cora} size={20} color="#6f6f77ff"/>
+          <View style={styles.precioContainer}>
+            {oferta ? (
+              <>
+                <Text style={styles.precioOriginal}>${oferta.original}</Text>
+                <Text style={styles.precioDescuento}>${precio}</Text>
+              </>
+            ) : (
+              <Text style={styles.precio}>${precio}</Text>
+            )}
+          </View>
+          <FontAwesome5 name={cora} size={20} color="#6f6f77ff" />
         </View>
+        {oferta && (
+          <View style={styles.badgeOferta}>
+            <Text style={styles.textoBadge}>¡Oferta! {oferta.descuento}% OFF</Text>
+          </View>
+        )}
         <Text style={styles.descripcion}>{descripcion}</Text>
         <Text style={styles.mes_hora}>{hora_mes}</Text>
-         <Text style={styles.explora}>{explora}</Text>
+        <Text style={styles.explora}>{explora}</Text>
       </View>
     </View>
   );
@@ -61,9 +75,39 @@ const styles = StyleSheet.create({
     fontSize: 11, fontFamily: "Merriweather",
     color: '#999',
   },
-  cora_pre:{
-flexDirection:"row",
-justifyContent:"space-between",
-marginRight:14,
-  }
+  cora_pre: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginRight: 14,
+  },
+  precioContainer: {
+  marginLeft: 10,
+  margin: 6,
+},
+precioOriginal: {
+  marginTop: 2,
+  fontSize: 18,
+  fontWeight: 'normal',
+  textDecorationLine: 'line-through',
+  color: '#999',
+},
+precioDescuento: {
+  fontSize: 24,
+  fontWeight: 'bold',
+  color: '#4CAF50',
+},
+badgeOferta: {
+  backgroundColor: '#ed3946',
+  paddingHorizontal: 8,
+  paddingVertical: 4,
+  borderRadius: 12,
+  alignSelf: 'flex-start',
+  marginLeft: 10,
+  marginBottom: 5,
+},
+textoBadge: {
+  color: 'white',
+  fontSize: 12,
+  fontWeight: 'bold',
+},
 });
