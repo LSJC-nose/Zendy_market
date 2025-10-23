@@ -2,8 +2,8 @@ import {  Text, Animated, PanResponder, StyleSheet, View, TextInput, FlatList, I
 import React, { useRef } from 'react';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import Categoria from '../Componentes/Categoria';
-import Producto from '../Componentes/Productos';
 import Notificaciones from '../Componentes/Notificaciones';
+import Producto from '../Componentes/Productos';
 import { useNavigation } from '@react-navigation/native';
 
 export default function Home() {
@@ -235,7 +235,7 @@ export default function Home() {
           />
         </View>
       </Animated.View>
-      <Notificaciones />
+    <Notificaciones />
     </View>
   )
 }
