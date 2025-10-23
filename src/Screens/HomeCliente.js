@@ -15,9 +15,6 @@ import {
   Dimensions,
 } from 'react-native';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-import Categoria from '../Componentes/Categoria';
-import Producto from '../Componentes/Productos';
-
 import { useNavigation } from '@react-navigation/native';
 
 // Firebase
@@ -62,126 +59,45 @@ export default function Home() {
     })
   ).current;
 
-  const Categorias = [
-    { id: 1, nombre: 'book', texto: 'Book' },
-    { id: 2, nombre: 'baby-carriage', texto: 'Baby' },
-    { id: 3, nombre: 'bicycle', texto: 'Sport' },
-    { id: 4, nombre: 'gamepad', texto: 'Game' },
-    { id: 5, nombre: 'camera', texto: 'Camera' },
-    { id: 5, nombre: 'laptop', texto: 'Laptop' },
-    { id: 5, nombre: 'apple', texto: 'Apple' },
-  ];
+  const toggleFavorito = (productoId) => {
+    setFavoritos((prev) => ({
+      ...prev,
+      [productoId]: !prev[productoId],
+    }));
+  };
 
-  const Productos = [
-    {
-      id: 1,
-      image: require('../../IMAGENES/ows.png'),
-      precio: '12',
-      descripcion: "A Room of One's Own",
-      hora_mes: '5 hours ago',
-      fondoColor: 'rgb(125, 183, 219)',
-      cora: 'heart',
-    },
-    {
-      id: 2,
-      image: require('../../IMAGENES/wireless.png'),
-      precio: '50',
-      descripcion: 'Wireless headphones',
-      hora_mes: '8 hours ago',
-      fondoColor: 'rgb(163, 227, 255)',
-      cora: 'heart',
-    },
-    {
-      id: 3,
-      image: require('../../IMAGENES/zapa.png'),
-      precio: '10',
-      descripcion: 'White sneakers',
-      hora_mes: '3 hours ago',
-      fondoColor: 'rgb(255, 194, 203)',
-      cora: 'heart',
-    },
-    {
-      id: 4,
-      image: require('../../IMAGENES/camera.png'),
-      precio: '12',
-      descripcion: 'Camera-Video & photo',
-      hora_mes: '6 hours ago',
-      fondoColor: 'rgb(165, 143, 255)',
-      cora: 'heart',
-    },
-    {
-      id: 5,
-      image: require('../../IMAGENES/oso.png'),
-      precio: '15',
-      descripcion: 'Teddy',
-      hora_mes: '10 hours ago',
-      fondoColor: 'rgb(189, 226, 242)',
-      cora: 'heart',
-    },
-    {
-      id: 6,
-      image: require('../../IMAGENES/cartera.png'),
-      precio: '50',
-      descripcion: 'Makeup travel bag',
-      hora_mes: '12 hours ago',
-      fondoColor: 'rgb(255, 236, 166)',
-      cora: 'heart',
-    },
-    {
-      id: 7,
-      image: require('../../IMAGENES/gaseosa.png'),
-      precio: '50',
-      descripcion: 'Makeup travel bag',
-      hora_mes: '12 hours ago',
-      fondoColor: 'rgb(255, 236, 166)',
-      cora: 'heart',
-    },
-    {
-      id: 8,
-      image: require('../../IMAGENES/cartera.png'),
-      precio: '50',
-      descripcion: 'Makeup travel bag',
-      hora_mes: '12 hours ago',
-      fondoColor: 'rgb(255, 236, 166)',
-      cora: 'heart',
-    },
-    {
-      id: 8,
-      image: require('../../IMAGENES/cartera.png'),
-      precio: '50',
-      descripcion: 'Makeup travel bag',
-      hora_mes: '12 hours ago',
-      fondoColor: 'rgb(255, 236, 166)',
-      cora: 'heart',
-    },
-    {
-      id: 8,
-      image: require('../../IMAGENES/cartera.png'),
-      precio: '50',
-      descripcion: 'Makeup travel bag',
-      hora_mes: '12 hours ago',
-      fondoColor: 'rgb(255, 236, 166)',
-      cora: 'heart',
-    },
-    {
-      id: 8,
-      image: require('../../IMAGENES/cartera.png'),
-      precio: '50',
-      descripcion: 'Makeup travel bag',
-      hora_mes: '12 hours ago',
-      fondoColor: 'rgb(255, 236, 166)',
-      cora: 'heart',
-    },
-    {
-      id: 8,
-      image: require('../../IMAGENES/cartera.png'),
-      precio: '50',
-      descripcion: 'Makeup travel bag',
-      hora_mes: '12 hours ago',
-      fondoColor: 'rgb(255, 236, 166)',
-      cora: 'heart',
-    },
-  ];
+  useEffect(() => {
+    const cargarDatos = async () => {
+      try {
+        const catSnapshot = await getDocs(collection(db, 'categoria'));
+        const cats = catSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+        setCategorias(cats);
+
+        const prodSnapshot = await getDocs(collection(db, 'productos'));
+        const prods = prodSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+        setProductos(prods);
+      } catch (error) {
+        console.error('Error cargando datos:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    cargarDatos();
+  }, []);
+
+  const productosFiltrados = useMemo(() => {
+    if (!busqueda.trim()) return productos;
+    return productos.filter((p) =>
+      p.nombre?.toLowerCase().includes(busqueda.toLowerCase())
+    );
+  }, [productos, busqueda]);
+
+  const categoriasFiltradas = useMemo(() => {
+    if (!busqueda.trim()) return categorias;
+    return categorias.filter((c) =>
+      c.nombre?.toLowerCase().includes(busqueda.toLowerCase())
+    );
+  }, [categorias, busqueda]);
 
   const navigation = useNavigation();
 
@@ -283,7 +199,6 @@ export default function Home() {
           )}
         </ScrollView>
       </Animated.View>
-      <Notificaciones />
     </View>
   );
 }
