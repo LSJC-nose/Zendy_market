@@ -1,163 +1,110 @@
-import {  Text, Animated, PanResponder, StyleSheet, View, TextInput, FlatList, Image, TouchableOpacity } from 'react-native'
-import React, { useRef } from 'react';
+compare esta vista // src/Screens/Home.js
+import React, { useRef, useEffect, useState, useMemo } from 'react';
+import {
+  Text,
+  Animated,
+  PanResponder,
+  StyleSheet,
+  View,
+  TextInput,
+  FlatList,
+  Image,
+  TouchableOpacity,
+  ActivityIndicator,
+  ScrollView,
+  Dimensions,
+} from 'react-native';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-import Categoria from '../Componentes/Categoria';
-import Notificaciones from '../Componentes/Notificaciones';
-import Producto from '../Componentes/Productos';
 import { useNavigation } from '@react-navigation/native';
+import Notificaciones from '../Componentes/Notificaciones.js';
+
+// Firebase
+import { db } from '../database/firebaseConfig.js';
+import { collection, getDocs } from 'firebase/firestore';
+
+// Componentes
+import CategoriaItem from '../Componentes/CategoriaItem.js';
+import Producto from '../Componentes/Productos';
+
+const { width } = Dimensions.get('window');
 
 export default function Home() {
+  const [categorias, setCategorias] = useState([]);
+  const [productos,  setProductos] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [busqueda, setBusqueda] = useState('');
+  const [favoritos, setFavoritos] = useState({});
+
   const translateY = useRef(new Animated.Value(300)).current;
+
   const panResponder = useRef(
-  PanResponder.create({
-    onMoveShouldSetPanResponder: (_, gesture) => Math.abs(gesture.dy) > 10, // más sensible
-     onPanResponderRelease: (_, gesture) => {
-            if (gesture.dy < -30) {
-              // Deslizó hacia arriba → mostrar
-              Animated.spring(translateY, {
-                toValue: 0,
-                useNativeDriver: true,
-                speed: 20,
-                bounciness: 8,
-              }).start();
-            } else if (gesture.dy > 30) {
-              // Deslizó hacia abajo → ocultar
-              Animated.spring(translateY, {
-                toValue: 300,
-                useNativeDriver: true,
-                speed: 20,
-                bounciness: 8,
-              }).start();
-            }
-          },
-  })
-).current;
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (_, gesture) => Math.abs(gesture.dy) > 10,
+      onPanResponderRelease: (_, gesture) => {
+        if (gesture.dy < -30) {
+          Animated.spring(translateY, {
+            toValue: 0,
+            useNativeDriver: true,
+            speed: 20,
+            bounciness: 8,
+          }).start();
+        } else if (gesture.dy > 30) {
+          Animated.spring(translateY, {
+            toValue: 300,
+            useNativeDriver: true,
+            speed: 20,
+            bounciness: 8,
+          }).start();
+        }
+      },
+    })
+  ).current;
 
-  const Categorias = [
-    { id: 1, nombre: 'book', texto: 'Book' },
-    { id: 2, nombre: 'baby-carriage', texto: 'Baby' },
-    { id: 3, nombre: 'bicycle', texto: 'Sport' },
-    { id: 4, nombre: 'gamepad', texto: 'Game' },
-    { id: 5, nombre: 'camera', texto: 'Camera' },
-    { id: 6, nombre: 'laptop', texto: 'Laptop' },
-    { id: 7, nombre: 'apple', texto: 'Apple' },
-  ];
+  const toggleFavorito = (productoId) => {
+    setFavoritos((prev) => ({
+      ...prev,
+      [productoId]: !prev[productoId],
+    }));
+  };
 
-  const Productos = [
-    {
-      id: 1,
-      image: require('../../IMAGENES/ows.png'),
-      precio: '12',
-      descripcion: "A Room of One's Own",
-      hora_mes: '5 hours ago',
-      fondoColor: 'rgb(125, 183, 219)',
-      cora: 'heart',
-    },
-    {
-      id: 2,
-      image: require('../../IMAGENES/wireless.png'),
-      precio: '50',
-      descripcion: 'Wireless headphones',
-      hora_mes: '8 hours ago',
-      fondoColor: 'rgb(163, 227, 255)',
-      cora: 'heart',
-    },
-    {
-      id: 3,
-      image: require('../../IMAGENES/zapa.png'),
-      precio: '10',
-      descripcion: 'White sneakers',
-      hora_mes: '3 hours ago',
-      fondoColor: 'rgb(255, 194, 203)',
-      cora: 'heart',
-    },
-    {
-      id: 4,
-      image: require('../../IMAGENES/camera.png'),
-      precio: '12',
-      descripcion: 'Camera-Video & photo',
-      hora_mes: '6 hours ago',
-      fondoColor: 'rgb(165, 143, 255)',
-      cora: 'heart',
-    },
-    {
-      id: 5,
-      image: require('../../IMAGENES/oso.png'),
-      precio: '15',
-      descripcion: 'Teddy',
-      hora_mes: '10 hours ago',
-      fondoColor: 'rgb(189, 226, 242)',
-      cora: 'heart',
-    },
-    {
-      id: 6,
-      image: require('../../IMAGENES/cartera.png'),
-      precio: '50',
-      descripcion: 'Makeup travel bag',
-      hora_mes: '12 hours ago',
-      fondoColor: 'rgb(255, 236, 166)',
-      cora: 'heart',
-    },
-    {
-      id: 7,
-      image: require('../../IMAGENES/gaseosa.png'),
-      precio: '50',
-      descripcion: 'Makeup travel bag',
-      hora_mes: '12 hours ago',
-      fondoColor: 'rgb(255, 236, 166)',
-      cora: 'heart',
-    },
-    {
-      id: 8,
-      image: require('../../IMAGENES/cartera.png'),
-      precio: '50',
-      descripcion: 'Makeup travel bag',
-      hora_mes: '12 hours ago',
-      fondoColor: 'rgb(255, 236, 166)',
-      cora: 'heart',
-    },
-    {
-      id: 9,
-      image: require('../../IMAGENES/cartera.png'),
-      precio: '50',
-      descripcion: 'Makeup travel bag',
-      hora_mes: '12 hours ago',
-      fondoColor: 'rgb(255, 236, 166)',
-      cora: 'heart',
-    },
-    {
-      id: 10,
-      image: require('../../IMAGENES/cartera.png'),
-      precio: '50',
-      descripcion: 'Makeup travel bag',
-      hora_mes: '12 hours ago',
-      fondoColor: 'rgb(255, 236, 166)',
-      cora: 'heart',
-    },
-    {
-      id: 11,
-      image: require('../../IMAGENES/cartera.png'),
-      precio: '50',
-      descripcion: 'Makeup travel bag',
-      hora_mes: '12 hours ago',
-      fondoColor: 'rgb(255, 236, 166)',
-      cora: 'heart',
-    },
-    {
-      id: 12,
-      image: require('../../IMAGENES/cartera.png'),
-      precio: '50',
-      descripcion: 'Makeup travel bag',
-      hora_mes: '12 hours ago',
-      fondoColor: 'rgb(255, 236, 166)',
-      cora: 'heart',
-    },
-  ];
+  useEffect(() => {
+    const cargarDatos = async () => {
+      try {
+        const catSnapshot = await getDocs(collection(db, 'categoria'));
+        const cats = catSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+        setCategorias(cats);
+
+        const prodSnapshot = await getDocs(collection(db, 'productos'));
+        const prods = prodSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+        setProductos(prods);
+      } catch (error) {
+        console.error('Error cargando datos:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    cargarDatos();
+  }, []);
+
+  const productosFiltrados = useMemo(() => {
+    if (!busqueda.trim()) return productos;
+    return productos.filter((p) =>
+      p.nombre?.toLowerCase().includes(busqueda.toLowerCase())
+    );
+  }, [productos, busqueda]);
+
+  const categoriasFiltradas = useMemo(() => {
+    if (!busqueda.trim()) return categorias;
+    return categorias.filter((c) =>
+      c.nombre?.toLowerCase().includes(busqueda.toLowerCase())
+    );
+  }, [categorias, busqueda]);
 
   const navigation = useNavigation();
+
   return (
     <View style={styles.container}>
-
+      {/* HEADER BUSCADOR */}
       <View style={styles.contenedor_buscador}>
         <View style={styles.buscador}>
           <FontAwesome name="search" size={20} color="black" />
@@ -165,10 +112,11 @@ export default function Home() {
             style={styles.textoBuscador}
             placeholder="Buscar"
             placeholderTextColor="#753c3cff"
+            value={busqueda}
+            onChangeText={setBusqueda}
           />
         </View>
       </View>
-
 
       <Text style={styles.produc_dest}>¡Hola! sea Bienvenido</Text>
 
@@ -188,56 +136,73 @@ export default function Home() {
         </View>
       </View>
 
-      
-
+      {/* PANEL DESLIZABLE */}
       <Animated.View
         style={[styles.panel, { transform: [{ translateY }] }]}
         {...panResponder.panHandlers}
       >
         <View style={styles.handle} />
-        <Text style={styles.title}>🛒 Mas de 250 productos en stock</Text>
-        {/* Categorías */}
+        <Text style={styles.title}>Más de 250 productos en stock</Text>
+
         <View style={styles.contenedorCategoria}>
-          <FlatList
-            data={Categorias}
-            horizontal
-            keyExtractor={(item) => item.id.toString()}
-            renderItem={({ item }) => (
-              <Categoria nombre={item.nombre} texto={item.texto} />
-            )}
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.categoriasLista}
-          />
+          {categoriasFiltradas.length > 0 ? (
+            <FlatList
+              data={categoriasFiltradas}
+              horizontal
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <CategoriaItem
+                  icon={item.icon || 'question-circle'}
+                  imagen={item.foto}
+                  texto={item.nombre}
+                />
+              )}
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.categoriasLista}
+            />
+          ) : (
+            <Text style={styles.sinProductos}>
+              {loading ? 'Cargando categorías...' : 'No hay categorías disponibles'}
+            </Text>
+          )}
         </View>
+
         <Text style={styles.produc_dest}>Productos destacados</Text>
 
-        {/* Productos en dos columnas */}
-        <View style={styles.productosContainer}>
-          <FlatList
-            data={Productos}
-            keyExtractor={(item) => item.id.toString()}
-            numColumns={2}
-            columnWrapperStyle={styles.filaTarjetas}
-            renderItem={({ item }) => (
-              <View style={styles.tarjeta}>
-                <Producto
-                  image={item.image}
-                  precio={item.precio}
-                  descripcion={item.descripcion}
-                  hora_mes={item.hora_mes}
-                  fondoColor={item.fondoColor}
-                  cora={item.cora}
-                />
-              </View>
-            )}
-            contentContainerStyle={styles.container_tarjetas}
-            showsVerticalScrollIndicator={false}
-          />
-        </View>
+        <ScrollView
+          style={styles.scrollContainer}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+        >
+          {loading ? (
+            <ActivityIndicator size="large" color="#3498db" style={{ marginTop: 20 }} />
+          ) : productosFiltrados.length === 0 ? (
+            <Text style={styles.sinProductos}>
+              {busqueda ? 'No se encontraron productos' : 'No hay productos'}
+            </Text>
+          ) : (
+            <View style={styles.productosContainer}>
+              {productosFiltrados.map((item) => (
+                <View key={item.id} style={styles.tarjeta}>
+                  <Producto
+                    image={{ uri: item.imagen }}
+                    precio={item.precio}
+                    descripcion={item.nombre}
+                    hora_mes={item.stock}
+                    explora=""
+                    fondoColor="#f8f9fa"
+                    isFavorito={!!favoritos[item.id]}
+                    onFavoritoPress={() => toggleFavorito(item.id)}
+                  />
+                </View>
+              ))}
+            </View>
+          )}
+        </ScrollView>
       </Animated.View>
-    <Notificaciones />
+      <Notificaciones />
     </View>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -248,19 +213,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   contenedor_buscador: {
-    width: "100%",
+    width: '100%',
     height: 130,
-    backgroundColor: "rgba(209, 230, 235, 1)",
+    backgroundColor: 'rgba(209, 230, 235, 1)',
     marginTop: -470,
     alignItems: 'center',
     marginBottom: 20,
-  },
-  textoBuscador: {
-    flex: 1,
-    height: 45,
-    color: '#2b0fc7ff',
-    fontSize: 16,
-    paddingLeft: 15,
   },
   buscador: {
     width: '90%',
@@ -271,6 +229,13 @@ const styles = StyleSheet.create({
     marginTop: 60,
     padding: 15,
     borderRadius: 10,
+  },
+  textoBuscador: {
+    flex: 1,
+    height: 45,
+    color: '#2b0fc7ff',
+    fontSize: 16,
+    paddingLeft: 15,
   },
   title: {
     marginTop: 10,
@@ -294,19 +259,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 6,
     shadowRadius: 10,
     elevation: 30,
-  },
-  contenedorCategoria: {
-    height: 85,
-    backgroundColor: '#e7f3f5ff',
-  },
-  categoriasLista: {
-    paddingHorizontal: 16,
-  },
-  logo: {
-    width: 120,
-    height: 120,
-    resizeMode: 'contain',
-    marginTop: 40,
+    paddingTop: 10,
   },
   handle: {
     width: 60,
@@ -316,25 +269,32 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginBottom: 15,
   },
+  contenedorCategoria: {
+    height: 100,
+    backgroundColor: '#e7f3f5ff',
+    marginBottom: 10,
+    width: '100%',
+  },
+  categoriasLista: {
+    paddingHorizontal: 16,
+  },
   produc_dest: {
     fontSize: 22,
     fontWeight: '600',
     marginVertical: 6,
   },
   productosContainer: {
-    margin: 20,
-    flex: 1,
-    width: '100%',
-  },
-  filaTarjetas: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     justifyContent: 'space-between',
-    marginBottom: 16,
+    paddingHorizontal: 16,
+    marginTop: 10,
   },
   tarjeta: {
-    flex: 1,
-    marginHorizontal: 8,
+    width: (width - 48) / 2, // 2 columnas con margen
+    marginBottom: 16,
+    overflow: 'hidden', // ← evita que la imagen se salga
   },
-
   contenedorCuadros: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -355,8 +315,6 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 5,
   },
-
-
   tituloCuadro: {
     fontSize: 18,
     fontWeight: '700',
@@ -364,7 +322,6 @@ const styles = StyleSheet.create({
     color: '#333',
     flexWrap: 'wrap',
   },
-
   boton: {
     backgroundColor: '#007bff',
     paddingVertical: 8,
@@ -372,21 +329,24 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignSelf: 'flex-start',
   },
-
   textoBoton: {
     color: '#fff',
     fontWeight: '700',
     fontSize: 14,
   },
-  descri: {
-    marginTop: 40,
-    marginLeft: 20,
-    fontSize: 14,
-    lineHeight: 20,
+  sinProductos: {
+    textAlign: 'center',
+    fontSize: 16,
+    color: '#666',
+    marginTop: 20,
+    fontStyle: 'italic',
   },
-  cart: {
-    alignContent: "space-evenly"
-
-  }
-
+  scrollContainer: {
+    flex: 1,
+    width: '100%',
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: 20,
+  },
 });
