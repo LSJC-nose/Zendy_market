@@ -9,39 +9,39 @@ export default function Producto({
   descripcion,
   hora_mes,
   explora,
+  oferta,
   fondoColor,
+  cora,
   isFavorito = false,
   onFavoritoPress = () => {},
 }) {
   return (
     <View style={styles.tarjeta}>
-      {/* IMAGEN CON BORDE REDONDEADO Y RECORTADA */}
-      <View style={[styles.contenedorImagen, { backgroundColor: fondoColor }]}>
-        <Image
-          source={image}
-          style={styles.imagen}
-          resizeMode="cover"
-        />
+      <View style={[styles.contenedor_imagen, { backgroundColor: fondoColor }]}>
+        <Image source={image} style={styles.imagen} />
       </View>
-
       <View style={styles.info}>
-        <View style={styles.precioYFavorito}>
-          <Text style={styles.precio}>${precio}</Text>
-          <TouchableOpacity onPress={onFavoritoPress}>
-            <FontAwesome5
-              name="heart"
-              size={20}
-              solid={isFavorito}
-              color={isFavorito ? '#e74c3c' : '#6f6f77ff'}
-            />
-          </TouchableOpacity>
+        <View style={styles.cora_pre}>
+          <View style={styles.precioContainer}>
+            {oferta ? (
+              <>
+                <Text style={styles.precioOriginal}>${oferta.original}</Text>
+                <Text style={styles.precioDescuento}>${precio}</Text>
+              </>
+            ) : (
+              <Text style={styles.precio}>${precio}</Text>
+            )}
+          </View>
+          <FontAwesome5 name={cora} size={20} color="#6f6f77ff" />
         </View>
-
-        <Text style={styles.descripcion} numberOfLines={2}>
-          {descripcion}
-        </Text>
-        <Text style={styles.stock}>{hora_mes} en stock</Text>
-        {explora ? <Text style={styles.explora}>{explora}</Text> : null}
+        {oferta && (
+          <View style={styles.badgeOferta}>
+            <Text style={styles.textoBadge}>¡Oferta! {oferta.descuento}% OFF</Text>
+          </View>
+        )}
+        <Text style={styles.descripcion}>{descripcion}</Text>
+        <Text style={styles.mes_hora}>{hora_mes}</Text>
+        <Text style={styles.explora}>{explora}</Text>
       </View>
     </View>
   );
@@ -49,53 +49,77 @@ export default function Producto({
 
 const styles = StyleSheet.create({
   tarjeta: {
-    backgroundColor: '#fff',
+    backgroundColor: "#ffffffff",
     borderRadius: 16,
     height: 230,
-    width: '100%',
-    borderWidth: 1,
+    borderWidth: 2,
     borderColor: '#e4e0e0ff',
-    overflow: 'hidden', // ← evita que la imagen se salga
   },
-  contenedorImagen: {
-    width: '100%',
+  contenedor_imagen: {
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
+    width: 186,
     height: 128,
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    overflow: 'hidden', // ← RECORTA LA IMAGEN
+    marginBottom: 10,
+    alignItems: "center",
+
+    overflow: 'hidden',
   },
   imagen: {
     width: '100%',
     height: '100%',
   },
-  info: {
-    padding: 10,
-    flex: 1,
-  },
-  precioYFavorito: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
+
   precio: {
-    fontSize: 20,
+    marginTop: 2,
+    marginLeft: 10,
+    margin: 6,
+    fontSize: 24,
     fontWeight: 'bold',
-    color: '#2c3e50',
   },
   descripcion: {
+    marginLeft: 10,
     fontSize: 14,
     color: '#555',
-    flex: 1,
   },
-  stock: {
-    fontSize: 11,
+  mes_hora: {
+    marginLeft: 10,
+    fontSize: 11, fontFamily: "Merriweather",
     color: '#999',
-    marginTop: 4,
   },
-  explora: {
-    fontSize: 12,
-    color: '#3498db',
-    marginTop: 4,
+  cora_pre: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginRight: 14,
   },
+  precioContainer: {
+  marginLeft: 10,
+  margin: 6,
+},
+precioOriginal: {
+  marginTop: 2,
+  fontSize: 18,
+  fontWeight: 'normal',
+  textDecorationLine: 'line-through',
+  color: '#999',
+},
+precioDescuento: {
+  fontSize: 24,
+  fontWeight: 'bold',
+  color: '#4CAF50',
+},
+badgeOferta: {
+  backgroundColor: '#ed3946',
+  paddingHorizontal: 8,
+  paddingVertical: 4,
+  borderRadius: 12,
+  alignSelf: 'flex-start',
+  marginLeft: 10,
+  marginBottom: 5,
+},
+textoBadge: {
+  color: 'white',
+  fontSize: 12,
+  fontWeight: 'bold',
+},
 });

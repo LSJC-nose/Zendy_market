@@ -17,6 +17,9 @@ import Pagos from './src/Screens/Pagos';
 import CRUDAdmon from './src/Screens/CRUDAdmon';
 import Users from './src/Screens/Users'
 import Categoria from './src/Screens/Categoria';
+import Ofertas from './src/Screens/OfertasScreen.js';
+import DetalleProductoScreen from './src/Screens/DetalleProductoScreen.js';
+import VistaProductos from './src/Screens/TodosProductos';  // ← Asegúrate de que este path sea exacto (ajusta si el archivo es 'vistaProductos.js')
 // Declaración de navegadores
 const Tab = createBottomTabNavigator();
 const StackNav = createStackNavigator();
@@ -47,13 +50,25 @@ function StackUsers() {
   );
 }
 */
+// Stack para Home Cliente (incluye sub-navegación para Ofertas, DetailHome y DetalleProducto)
+function StackHomeCliente() {
+  return (
+    <StackNav.Navigator initialRouteName="Home" screenOptions={{ headerShown: false }}>
+      <StackNav.Screen name="Home" component={Home} />
+      <StackNav.Screen name="DetailHome" component={VistaProductos} />
+      <StackNav.Screen name="Ofertas" component={Ofertas} />
+      <StackNav.Screen name="DetalleProducto" component={DetalleProductoScreen} />
+    </StackNav.Navigator>
+  );
+}
+
 // Tabs para Cliente
 function MyTabsCliente() {
     return (
         <Tab.Navigator initialRouteName="Home" screenOptions={{ tabBarActiveTintColor: 'purple' }}>
             <Tab.Screen
                 name="Home"
-                component={Home}
+                component={StackHomeCliente}
                 options={{
                     tabBarLabel: 'Inicio',
                     tabBarIcon: ({ color }) => <AntDesign name="home" size={30} color={color} />,

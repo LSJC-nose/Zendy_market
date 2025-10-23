@@ -6,11 +6,14 @@ import {
   TextInput,
   FlatList,
   ScrollView,
+  TouchableOpacity
 } from 'react-native';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import Producto from '../Componentes/Productos';
+import { useNavigation } from '@react-navigation/native';
 
 export default function vistaProductos() {
+  const navigation = useNavigation();
   const Productos = [
     {
       id: 1,
@@ -95,14 +98,17 @@ export default function vistaProductos() {
           ItemSeparatorComponent={() => <View style={{ width: 12 }} />}
           contentContainerStyle={{ paddingHorizontal: 10 }}
           renderItem={({ item }) => (
-            <Producto
-              image={item.image}
-              precio={item.precio}
-              descripcion={item.descripcion}
-              hora_mes={item.hora_mes}
-              fondoColor={item.fondoColor}
-              cora={item.cora}
-            />
+            <TouchableOpacity onPress={() => navigation.navigate('DetalleProducto', { producto: item })}>
+              <Producto
+                image={item.image}
+                precio={item.precio}
+                descripcion={item.descripcion}
+                hora_mes={item.hora_mes}
+                fondoColor={item.fondoColor}
+                cora={item.cora}
+                oferta={item.oferta}
+              />
+            </TouchableOpacity>
           )}
         />
 
@@ -115,14 +121,17 @@ export default function vistaProductos() {
           ItemSeparatorComponent={() => <View style={{ width: 12 }} />}
           contentContainerStyle={{ paddingHorizontal: 10 }}
           renderItem={({ item }) => (
-            <Producto
-              image={item.image}
-              precio={item.precio}
-              descripcion={item.descripcion}
-              hora_mes={item.hora_mes}
-              fondoColor={item.fondoColor}
-              cora={item.cora}
-            />
+            <TouchableOpacity onPress={() => navigation.navigate('DetalleProducto', { producto: item })}>
+              <Producto
+                image={item.image}
+                precio={item.precio}
+                descripcion={item.descripcion}
+                hora_mes={item.hora_mes}
+                fondoColor={item.fondoColor}
+                cora={item.cora}
+                oferta={item.oferta}
+              />
+            </TouchableOpacity>
           )}
         />
 
@@ -135,18 +144,21 @@ export default function vistaProductos() {
           ItemSeparatorComponent={() => <View style={{ width: 12 }} />}
           contentContainerStyle={{ paddingHorizontal: 10 }}
           renderItem={({ item }) => (
-            <Producto
-              image={item.image}
-              precio={item.precio}
-              descripcion={item.descripcion}
-              hora_mes={item.hora_mes}
-              fondoColor={item.fondoColor}
-              cora={item.cora}
-            />
+            <TouchableOpacity onPress={() => navigation.navigate('DetalleProducto', { producto: item })}>
+              <Producto
+                image={item.image}
+                precio={item.precio}
+                descripcion={item.descripcion}
+                hora_mes={item.hora_mes}
+                fondoColor={item.fondoColor}
+                cora={item.cora}
+                oferta={item.oferta}
+              />
+            </TouchableOpacity>
           )}
         />
 
-         <Text style={styles.titulo}>Novedades para el hogar</Text>
+        <Text style={styles.titulo}>Novedades para el hogar</Text>
         <FlatList
           data={Productos}
           horizontal
@@ -155,14 +167,17 @@ export default function vistaProductos() {
           ItemSeparatorComponent={() => <View style={{ width: 12 }} />}
           contentContainerStyle={{ paddingHorizontal: 10 }}
           renderItem={({ item }) => (
-            <Producto
-              image={item.image}
-              precio={item.precio}
-              descripcion={item.descripcion}
-              hora_mes={item.hora_mes}
-              fondoColor={item.fondoColor}
-              cora={item.cora}
-            />
+            <TouchableOpacity onPress={() => navigation.navigate('DetalleProducto', { producto: item })}>
+              <Producto
+                image={item.image}
+                precio={item.precio}
+                descripcion={item.descripcion}
+                hora_mes={item.hora_mes}
+                fondoColor={item.fondoColor}
+                cora={item.cora}
+                oferta={item.oferta}
+              />
+            </TouchableOpacity>
           )}
         />
       </ScrollView>
@@ -180,7 +195,7 @@ const styles = StyleSheet.create({
   contenedor_buscador: {
     alignItems: 'center',
     marginBottom: 20,
-    marginTop:-30,
+    marginTop: -30,
   },
   buscador: {
     width: '90%',

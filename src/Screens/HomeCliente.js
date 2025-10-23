@@ -24,6 +24,7 @@ import { collection, getDocs } from 'firebase/firestore';
 // Componentes
 import CategoriaItem from '../Componentes/CategoriaItem.js';
 import Producto from '../Componentes/Productos';
+import Notificaciones from '../Componentes/Notificaciones.js';
 
 const { width } = Dimensions.get('window');
 
@@ -129,7 +130,7 @@ export default function Home() {
 
         <View style={styles.cuadro}>
           <Text style={styles.tituloCuadro}>Ver ofertas ¡quizás te interesen!</Text>
-          <TouchableOpacity style={styles.boton} onPress={() => navigation.navigate('DetailHome')}>
+          <TouchableOpacity style={styles.boton} onPress={() => navigation.navigate('Ofertas')}>
             <Text style={styles.textoBoton}>Ver →</Text>
           </TouchableOpacity>
         </View>
@@ -143,7 +144,7 @@ export default function Home() {
         <View style={styles.handle} />
         <Text style={styles.title}>Más de 250 productos en stock</Text>
 
-        <View style={styles.contenedorCategoria}>
+<View style={styles.contenedorCategoria}>
           {categoriasFiltradas.length > 0 ? (
             <FlatList
               data={categoriasFiltradas}
@@ -199,6 +200,7 @@ export default function Home() {
           )}
         </ScrollView>
       </Animated.View>
+    <Notificaciones />
     </View>
   );
 }
