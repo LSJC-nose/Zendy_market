@@ -31,7 +31,7 @@ const LoginTienda = ({ onLoginSuccess }) => {
 
       //Consulta a la colección usuario
       const q = query(
-        collection(db, 'Roles'), where('correo', '==', email.trim())
+        collection(db, 'usuario'), where('correo', '==', email.trim())
       );
       const querySnapshot = await getDocs(q);
       let rol = "";
