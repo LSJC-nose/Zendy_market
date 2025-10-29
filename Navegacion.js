@@ -3,7 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { AntDesign } from '@expo/vector-icons';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 // Importa tus componentes de pantalla
 import Home from './src/Screens/HomeCliente';
 import Settings from './src/Screens/Settings';
@@ -20,6 +20,10 @@ import Categoria from './src/Screens/Categoria';
 import Ofertas from './src/Screens/OfertasScreen.js';
 import DetalleProductoScreen from './src/Screens/DetalleProductoScreen.js';
 import VistaProductos from './src/Screens/TodosProductos';  // ← Asegúrate de que este path sea exacto (ajusta si el archivo es 'vistaProductos.js')
+import Usuarios from './src/Screens/Usuarios.js';
+import TodasTiendasSuper from './src/Screens/TodasTiendasSuper.js';
+import SuperAdmon from './src/Screens/SuperAdmon.js';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
 // Declaración de navegadores
 const Tab = createBottomTabNavigator();
 const StackNav = createStackNavigator();
@@ -135,6 +139,42 @@ function MyTabsAdmon() {
     );
 }
 
+// Tabs para Administrador
+function MyTabsSuperAdmon() {
+    return (
+        <Tab.Navigator initialRouteName="SuperAdmon" screenOptions={{ tabBarActiveTintColor: 'purple' }}>
+            <Tab.Screen
+                name="SuperAdmon"
+                component={SuperAdmon}
+                options={{
+                    tabBarLabel: 'SUPERdAmon',
+                    tabBarIcon: ({ color }) => <AntDesign name="home" size={30} color={color} />,
+                    headerShown: false,
+                }}
+            />
+
+            <Tab.Screen
+                name="Usuarios"
+                component={Usuarios}
+                options={{
+                    tabBarLabel: 'Usuarios',
+                    tabBarIcon: ({ color }) => <FontAwesome name="users" size={24} color="black" />,
+                }}
+            />
+
+            <Tab.Screen
+                name="Tiendas Disponibles"
+                component={TodasTiendasSuper}
+                options={{
+                    tabBarLabel: 'TodasTiendasSuper',
+                    tabBarIcon: ({ color }) => <FontAwesome6 name="shop" size={24} color="black" />,
+                }}
+            />
+
+        </Tab.Navigator>
+    );
+}
+
 // Stack principal que incluye Login y Tabs
 function StackLogin() {
 
@@ -149,6 +189,7 @@ function StackLogin() {
             <StackNav.Screen name="Pagos" component={Pagos} />
             <StackNav.Screen name="MyTabsCliente" component={MyTabsCliente} />
             <StackNav.Screen name="MyTabsAdmon" component={MyTabsAdmon} />
+            <StackNav.Screen name="MyTabsSuperAdmon" component={MyTabsSuperAdmon} />
         </StackNav.Navigator>
     );
 }

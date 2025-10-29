@@ -88,12 +88,12 @@ const ModalRegistrarTienda = ({ modalVisible, setModalVisible, recargarTiendas }
     };
 
     const guardarTienda = async () => {
-        const datosValidados = await validarDatos({ nuevaTienda });
+       // const datosValidados = await validarDatos({ nuevaTienda });
 
-        if (datosValidados) {
+        //if (datosValidados) {
             try {
                 await addDoc(collection(db, 'tienda'), {
-                    nombre: datosValidados.nombre,
+                    nombre,
                     foto,
                     fechaCreacion: new Date(),
                 });
@@ -108,9 +108,8 @@ const ModalRegistrarTienda = ({ modalVisible, setModalVisible, recargarTiendas }
                 console.error('Error al guardar tienda: ', error);
                 Alert.alert('Error', 'No se pudo guardar la tienda.');
             }
-        }
+       // }
     };
-
 
     return (
         <Modal
@@ -154,7 +153,6 @@ const ModalRegistrarTienda = ({ modalVisible, setModalVisible, recargarTiendas }
                                 <Text style={styles.textoBoton}>Seleccionar Imagen</Text>
                             </TouchableOpacity>
                         </View>
-
                         <View style={styles.card}>
                             <Text style={styles.label}>Nombre de la tienda</Text>
                             <TextInput
@@ -164,8 +162,6 @@ const ModalRegistrarTienda = ({ modalVisible, setModalVisible, recargarTiendas }
                                 onChangeText={setNombreTienda}
                             />
                         </View>
-
-
                         <View style={styles.spacer} />
                     </ScrollView>
 

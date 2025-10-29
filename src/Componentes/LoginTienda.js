@@ -19,38 +19,42 @@ const LoginTienda = ({ onLoginSuccess }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-   const acceder = async () => {
-        if (!email.trim() || !password.trim()) {
-            Alert.alert('Campos vacíos', 'Por favor ingrese su correo y contraseña.');
-            return;
-        }
-        try {
-            //autenticación del usuario
-            const userCredential = await signInWithEmailAndPassword(auth, email, password);
-            const user = userCredential.user;
+  const acceder = async () => {
+    if (!email.trim() || !password.trim()) {
+      Alert.alert('Campos vacíos', 'Por favor ingrese su correo y contraseña.');
+      return;
+    }
+    try {
+      //autenticación del usuario
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
 
-            //Consulta a la colección usuario
-            const q = query(
-                collection(db, 'Roles'), where('correo', '==', email.trim())
-            );
-            const querySnapshot = await getDocs(q);
-            let rol = "";
-            querySnapshot.forEach((doc) => {
-                rol = doc.data().rol;
-            });
-            //finaliza la consulta
+      //Consulta a la colección usuario
+      const q = query(
+        collection(db, 'Roles'), where('correo', '==', email.trim())
+      );
+      const querySnapshot = await getDocs(q);
+      let rol = "";
+      querySnapshot.forEach((doc) => {
+        rol = doc.data().rol;
+      });
+      //finaliza la consulta
 
-            //Verificación del rol para la navegación 
+      //Verificación del rol para la navegación 
 
-            if (rol === "Cliente")
-               navigation.replace('MyTabsCliente');// ir a la nav del cliente
-            else if (rol === "Administrador")
-                navigation.replace('Suscripcion'); 
-        
-        } catch (error) {
-            Alert.alert("Error", "Correo o contraseña incorrectos");
-        }
-    };
+      if (rol === "Cliente")
+        navigation.replace('MyTabsCliente');// ir a la nav del cliente
+
+      else if (rol === "Administrador")
+        navigation.replace('Suscripcion');
+
+      else if (rol === "SuperAdministrador")
+        navigation.replace('MyTabsSuperAdmon');
+
+    } catch (error) {
+      Alert.alert("Error", "Correo o contraseña incorrectos");
+    }
+  };
 
 
   const translateY = useRef(new Animated.Value(300)).current;
