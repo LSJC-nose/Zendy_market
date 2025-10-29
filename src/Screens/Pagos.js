@@ -99,7 +99,7 @@ export default function Pagos() {
                     </View>
                     <View style={styles.pagar}>
                         <Text style={styles.total}>Total $9.99</Text>
-                        <TouchableOpacity style={styles.payButton} onPress={() => navigation.navigate('Tienda')}>
+                        <TouchableOpacity style={styles.payButton} onPress={() => navigation.navigate('MyTabsAdmon')}>
                             <Text style={styles.payText}>Pagar</Text>
                         </TouchableOpacity>
                     </View>

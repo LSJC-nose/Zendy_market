@@ -16,10 +16,12 @@ import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system'; // si no se usa, puedes quitarlo
 
 const ModalRegistrarTienda = ({ modalVisible, setModalVisible, recargarTiendas }) => {
+    const [nuevaTienda, setNuevaTienda] = useState({ nombre: '', foto:'' });
     const [tienda, setTienda] = useState([]);
     const [foto, setFoto] = useState('');
     const [nombre, setNombreTienda] = useState('');
     const [horas, setHoras] = useState(''); // por si quieres usarlo más adelante
+
 
     const limpiarFormulario = () => {
         setFoto('');
@@ -37,30 +39,6 @@ const ModalRegistrarTienda = ({ modalVisible, setModalVisible, recargarTiendas }
             setTienda(data);
         } catch (error) {
             console.error("Error al obtener documentos:", error);
-        }
-    };
-
-    const guardarTienda = async () => {
-        try {
-            if (!nombre || !foto) {
-                Alert.alert('Error', 'Por favor ingresa un nombre y una foto.');
-                return;
-            }
-            await addDoc(collection(db, 'tienda'), {
-                foto,
-                nombre,
-                fechaCreacion: new Date(),
-            });
-
-            // limpiar y cerrar
-            limpiarFormulario();
-            setModalVisible(false);
-            recargarTiendas();
-
-            Alert.alert('Éxito', 'Tienda agregada correctamente 🎉');
-        } catch (error) {
-            console.error('Error al guardar tienda: ', error);
-            Alert.alert('Error', 'No se pudo guardar la tienda.');
         }
     };
 
@@ -85,6 +63,54 @@ const ModalRegistrarTienda = ({ modalVisible, setModalVisible, recargarTiendas }
         }
     };
 
+    const validarDatos = async (datos) => {
+        try {
+            const response = await fetch("https://45nxa849s1.execute-api.us-east-1.amazonaws.com/validartiendas", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(datos),
+            });
+
+            const resultado = await response.json();
+
+            if (resultado.success) {
+                return resultado.data; // Datos limpios y validados
+            } else {
+                const errores = Array.isArray(resultado.errors) ? resultado.errors : [resultado.errors];
+                Alert.alert("Errores en los datos", errores.join("\n"));
+                return null;
+            }
+        } catch (error) {
+            console.error("Error al validar con Lambda:", error);
+            Alert.alert("Error", "No se pudo validar la información con el servidor.");
+            return null;
+        }
+    };
+
+    const guardarTienda = async () => {
+        const datosValidados = await validarDatos({ nuevaTienda });
+
+        if (datosValidados) {
+            try {
+                await addDoc(collection(db, 'tienda'), {
+                    nombre: datosValidados.nombre,
+                    foto,
+                    fechaCreacion: new Date(),
+                });
+
+                // limpiar y cerrar
+                limpiarFormulario();
+                setModalVisible(false);
+                recargarTiendas();
+                setNuevaTienda({ nombre: "",  foto: "" });
+                Alert.alert('Éxito', 'Tienda agregada correctamente 🎉');
+            } catch (error) {
+                console.error('Error al guardar tienda: ', error);
+                Alert.alert('Error', 'No se pudo guardar la tienda.');
+            }
+        }
+    };
+
 
     return (
         <Modal
@@ -103,7 +129,7 @@ const ModalRegistrarTienda = ({ modalVisible, setModalVisible, recargarTiendas }
                             <Text style={styles.iconoEmoji}>🛍️</Text>
                             <Text style={styles.iconoSub}>Crea y administra tus tiendas</Text>
                         </View>
-                        
+
                         <View style={styles.card}>
                             <Text style={styles.label}>Foto</Text>
                             <TextInput

@@ -52,14 +52,14 @@ function StackUsers() {
 */
 // Stack para Home Cliente (incluye sub-navegación para Ofertas, DetailHome y DetalleProducto)
 function StackHomeCliente() {
-  return (
-    <StackNav.Navigator initialRouteName="Home" screenOptions={{ headerShown: false }}>
-      <StackNav.Screen name="Home" component={Home} />
-      <StackNav.Screen name="DetailHome" component={VistaProductos} />
-      <StackNav.Screen name="Ofertas" component={Ofertas} />
-      <StackNav.Screen name="DetalleProducto" component={DetalleProductoScreen} />
-    </StackNav.Navigator>
-  );
+    return (
+        <StackNav.Navigator initialRouteName="Home" screenOptions={{ headerShown: false }}>
+            <StackNav.Screen name="Home" component={Home} />
+            <StackNav.Screen name="DetailHome" component={VistaProductos} />
+            <StackNav.Screen name="Ofertas" component={Ofertas} />
+            <StackNav.Screen name="DetalleProducto" component={DetalleProductoScreen} />
+        </StackNav.Navigator>
+    );
 }
 
 // Tabs para Cliente
@@ -111,14 +111,6 @@ function MyTabsAdmon() {
                     headerShown: false,
                 }}
             />
-            <Tab.Screen
-                name="Configuración"
-                component={Settings}
-                options={{
-                    tabBarLabel: 'Configuración',
-                    tabBarIcon: ({ color }) => <AntDesign name="setting" size={30} color={color} />,
-                }}
-            />
 
             <Tab.Screen
                 name="Registra tu tienda"
@@ -145,11 +137,11 @@ function MyTabsAdmon() {
 
 // Stack principal que incluye Login y Tabs
 function StackLogin() {
-  
+
 
     return (
         <StackNav.Navigator
-          
+
             screenOptions={{ headerShown: false }}
         >
             <StackNav.Screen name="Login" component={LoginTienda} />

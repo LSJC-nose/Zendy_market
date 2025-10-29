@@ -9,6 +9,9 @@ import AntDesign from '@expo/vector-icons/AntDesign';
 import * as ImagePicker from 'expo-image-picker';
 import { db } from '../database/firebaseConfig';
 import { getDocs, collection, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
+import ModalEditarTienda from './BotonActualizarTienda';
+import FormularioRegistrarProducto from './FormularioRegistrarProducto';
+import ModalSeleccionarCategoria from './ModalSeleccionarCategoria';
 
 const TarjetaTienda = ({ tienda, eliminarTienda }) => {
     const [modalVisible, setModalVisible] = useState(false);
@@ -231,6 +234,7 @@ const TarjetaTienda = ({ tienda, eliminarTienda }) => {
                                         <Text style={styles.nombre}>{item.nombre ?? 'Sin nombre'}</Text>
                                     </View>
                                     <BotonEliminarTienda id={item.id} eliminarTienda={eliminarTienda} />
+                                    <ModalEditarTienda id={item.id} tiendaData={item} />
                                 </LinearGradient>
                             </TouchableOpacity>
                         );
@@ -254,69 +258,15 @@ const TarjetaTienda = ({ tienda, eliminarTienda }) => {
                             {tiendaSeleccionada && (
                                 <>
                                     <ModalHeader />
-                                    <View style={styles.tarjeta_input}>
-                                    <TextInput
-                                        style={styles.input}
-                                        placeholder="Nombre del producto"
-                                        value={productoForm.nombre}
-                                        onChangeText={(nombre) => manejoCambio('nombre', nombre)}
+                                    <FormularioRegistrarProducto
+                                        styles={styles}
+                                        productoForm={productoForm}
+                                        manejoCambio={manejoCambio}
+                                        abrirModalCategorias={abrirModalCategorias}
+                                        seleccionarImagen={seleccionarImagen}
+                                        modoEdicion={modoEdicion}
+                                        onSubmit={modoEdicion ? actualizarProducto : guardarProducto}
                                     />
-                                    <TextInput
-                                        style={styles.input}
-                                        placeholder="Precio"
-                                        value={productoForm.precio}
-                                        onChangeText={(precio) => manejoCambio('precio', precio)}
-                                        keyboardType="numeric"
-                                    />
-                                    <TextInput
-                                        style={styles.input}
-                                        placeholder="Stock"
-                                        value={productoForm.stock}
-                                        onChangeText={(stock) => manejoCambio('stock', stock)}
-                                        keyboardType="numeric"
-                                    />
-                                    <View style={styles.categoriaContainer}>
-                                        <Text style={styles.categoriaLabel}>Categoría:</Text>
-                                        <TouchableOpacity 
-                                            style={styles.categoriaButton} 
-                                            onPress={abrirModalCategorias}
-                                        >
-                                            <Text style={styles.categoriaButtonText}>
-                                                {productoForm.Categoria || 'Selecciona una categoría'}
-                                            </Text>
-                                            <AntDesign name="down" size={16} color="#666" />
-                                        </TouchableOpacity>
-                                    </View>
-                                     </View>
-                                     <View style={styles.tarjeta_input}>
-                                    {productoForm.foto ? (
-                                        <Image
-                                            source={{ uri: productoForm.foto }}
-                                            style={styles.preview}
-                                            resizeMode="contain"
-                                            onError={() => Alert.alert('Error', 'No se pudo cargar la imagen')}
-                                        />
-                                        
-                                    ) : (
-                                        <Text style={styles.mensajePreview}>La imagen se mostrará aquí</Text>
-                                    )}
-                                    <TouchableOpacity style={styles.botonSeleccionar} onPress={seleccionarImagen}>
-                                        <Text style={styles.textoBoton}>Seleccionar Imagen</Text>
-                                    </TouchableOpacity>
-
-                                    <View style={styles.actionsRow}>
-                                        <TouchableOpacity
-                                            style={styles.accionBoton}
-                                            onPress={modoEdicion ? actualizarProducto : guardarProducto}
-                                            activeOpacity={0.8}
-                                        >
-                                            <Text style={styles.accionTexto}>
-                                                {modoEdicion ? 'Actualizar' : 'Guardar'}
-                                            </Text>
-                                        </TouchableOpacity>
-
-                                    </View>
-                                    </View>
                                     <ScrollView>
                                         <TablaProductos
                                             productos={productos}
@@ -324,8 +274,6 @@ const TarjetaTienda = ({ tienda, eliminarTienda }) => {
                                             eliminarProducto={eliminarProducto}
                                         />
                                     </ScrollView>
-                                
-                               
                                 </>
                             )}
                         </ScrollView>
@@ -333,46 +281,12 @@ const TarjetaTienda = ({ tienda, eliminarTienda }) => {
                 </KeyboardAvoidingView>
             </Modal>
 
-          
-            <Modal
+            <ModalSeleccionarCategoria
                 visible={categoriaModalVisible}
-                animationType="slide"
-                transparent={true}
-                onRequestClose={() => setCategoriaModalVisible(false)}
-            >
-                <View style={styles.categoriaModalContainer}>
-                    <View style={styles.categoriaModalContent}>
-                        <View style={styles.categoriaModalHeader}>
-                            <Text style={styles.categoriaModalTitle}>Seleccionar Categoría</Text>
-                            <TouchableOpacity 
-                                onPress={() => setCategoriaModalVisible(false)}
-                                style={styles.categoriaModalCloseButton}
-                            >
-                                <AntDesign name="close" size={24} color="black" />
-                            </TouchableOpacity>
-                        </View>
-                        
-                        <ScrollView style={styles.categoriaList}>
-                            {categorias.length === 0 ? (
-                                <Text style={styles.categoriaEmptyText}>
-                                    No hay categorías disponibles. Crea una categoría primero.
-                                </Text>
-                            ) : (
-                                categorias.map((categoria) => (
-                                    <TouchableOpacity
-                                        key={categoria.id}
-                                        style={styles.categoriaItem}
-                                        onPress={() => seleccionarCategoria(categoria)}
-                                    >
-                                        <Text style={styles.categoriaItemText}>{categoria.nombre}</Text>
-                                        <AntDesign name="right" size={16} color="#666" />
-                                    </TouchableOpacity>
-                                ))
-                            )}
-                        </ScrollView>
-                    </View>
-                </View>
-            </Modal>
+                categorias={categorias}
+                onClose={() => setCategoriaModalVisible(false)}
+                onSeleccionar={seleccionarCategoria}
+            />
         </View>
     );
 };
@@ -537,59 +451,6 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: '#2c3e50',
         flex: 1,
-    },
-    categoriaModalContainer: {
-        flex: 1,
-        backgroundColor: 'rgba(234, 243, 245, 0.5)',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    categoriaModalContent: {
-        backgroundColor: "#e5f3f5ff",
-        borderRadius: 12,
-        width: '90%',
-        maxHeight: '70%',
-        padding: 16,
-    },
-    categoriaModalHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 16,
-        borderBottomWidth: 1,
-        borderBottomColor: '#e1f3ed',
-        paddingBottom: 12,
-    },
-    categoriaModalTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#2c3e50',
-    },
-    categoriaModalCloseButton: {
-        padding: 4,
-    },
-    categoriaList: {
-        maxHeight: 300,
-    },
-    categoriaItem: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: 16,
-        borderBottomWidth: 1,
-        borderBottomColor: '#f0f0f0',
-    },
-    categoriaItemText: {
-        fontSize: 16,
-        color: '#2c3e50',
-        flex: 1,
-    },
-    categoriaEmptyText: {
-        textAlign: 'center',
-        fontSize: 16,
-        color: '#666',
-        padding: 20,
-        fontStyle: 'italic',
     }
 
 });

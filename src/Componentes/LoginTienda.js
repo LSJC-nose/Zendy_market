@@ -25,7 +25,6 @@ const LoginTienda = ({ onLoginSuccess }) => {
             return;
         }
         try {
-
             //autenticación del usuario
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
@@ -46,13 +45,11 @@ const LoginTienda = ({ onLoginSuccess }) => {
             if (rol === "Cliente")
                navigation.replace('MyTabsCliente');// ir a la nav del cliente
             else if (rol === "Administrador")
-                navigation.replace('MyTabsAdmon'); // ir a la nav del administrador
+                navigation.replace('Suscripcion'); 
         
         } catch (error) {
             Alert.alert("Error", "Correo o contraseña incorrectos");
         }
-
-
     };
 
 
