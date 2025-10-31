@@ -1,5 +1,5 @@
 // ...existing code...
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   SafeAreaView,
   Alert,
@@ -14,12 +14,39 @@ import {
 } from 'react-native'
 
 import { useNavigation } from '@react-navigation/native';
+import { auth, db } from '../database/firebaseConfig';
+import { collection, getDocs, query, where } from 'firebase/firestore';
 
 
 export default function CRUDAdmon() {
     const navigation = useNavigation();
+    const [nombreUsuario, setNombreUsuario] = useState('Usuario');
+
+    useEffect(() => {
+        const obtenerNombreUsuario = async () => {
+            try {
+                const currentUser = auth.currentUser;
+                if (currentUser && currentUser.email) {
+                    const q = query(
+                        collection(db, 'usuario'),
+                        where('correo', '==', currentUser.email)
+                    );
+                    const querySnapshot = await getDocs(q);
+                    querySnapshot.forEach((doc) => {
+                        const data = doc.data();
+                        if (data.nombre) {
+                            setNombreUsuario(data.nombre);
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('Error al obtener nombre de usuario:', error);
+            }
+        };
+
+        obtenerNombreUsuario();
+    }, []);
  
-   
   const stats = [
     { id: '1', icon: '🛒', label: 'Órdenes', value: 12 },
     { id: '2', icon: '💸', label: 'Gastado', value: '$450' },
@@ -74,7 +101,7 @@ export default function CRUDAdmon() {
       <StatusBar barStyle="light-content" backgroundColor="#2fb26b" />
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.greet}>¡Hola! 👋</Text>
+          <Text style={styles.greet}>¡Hola, {nombreUsuario}! 👋</Text>
           <Text style={styles.welcome}>Bienvenido a ZendyMarket</Text>
         </View>
 
@@ -251,5 +278,3 @@ const styles = StyleSheet.create({
   },
   recentBtnText: { color: '#fff', fontWeight: '600' },
 })
-
-// ...existing code...
