@@ -3,8 +3,8 @@ import { View, StyleSheet, TouchableOpacity, Text, Image } from "react-native";
 import Entypo from '@expo/vector-icons/Entypo';
 import ModalRegistrarTienda from '../Componentes/ModalRegistrarTienda.js';
 import TarjetaTienda from "../Componentes/TarjetaTienda.js";
-import { collection, getDocs, deleteDoc, doc } from "firebase/firestore";
-import { db } from "../database/firebaseConfig.js";
+import { collection, getDocs, deleteDoc, doc, query, where } from "firebase/firestore";
+import { db, auth } from "../database/firebaseConfig.js";
 
 
 export default function Tienda() {
@@ -13,12 +13,33 @@ export default function Tienda() {
 
     const cargarDatos = async () => {
         try {
-            const querySnapshot = await getDocs(collection(db, "tienda"));
-            const data = querySnapshot.docs.map((doc) => ({
-                id: doc.id,
-                ...doc.data(),
-            }));
-            setTiendas(data);
+            // Obtener usuario actual
+            const currentUser = auth.currentUser;
+            if (!currentUser) {
+                setTiendas([]);
+                return;
+            }
+
+            // Buscar documento en 'usuario' por correo para obtener tiendas asignadas
+            const usuarioSnap = await getDocs(query(collection(db, 'usuario'),
+             where('correo', '==', currentUser.email)));
+            let tiendasAsignadas = [];
+            usuarioSnap.forEach((d) => {
+                const data = d.data();
+                if (Array.isArray(data.tiendas)) tiendasAsignadas = data.tiendas;
+            });
+
+            // Si no hay asignadas, lista vacía
+            if (!Array.isArray(tiendasAsignadas) || tiendasAsignadas.length === 0) {
+                setTiendas([]);
+                return;
+            }
+
+            // Cargar todas y filtrar por ids asignados 
+            const tiendasSnap = await getDocs(collection(db, 'tienda'));
+            const todas = tiendasSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+            const filtradas = todas.filter(t => tiendasAsignadas.includes(t.id));
+            setTiendas(filtradas);
         } catch (error) {
             console.error("Error al obtener documentos:", error);
         }

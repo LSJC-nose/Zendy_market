@@ -167,7 +167,7 @@ function MyTabsSuperAdmon() {
                 name="Tiendas Disponibles"
                 component={TodasTiendasSuper}
                 options={{
-                    tabBarLabel: 'TodasTiendasSuper',
+                    tabBarLabel: 'Tiendas Disponibles',
                     tabBarIcon: ({ color }) => <FontAwesome6 name="shop" size={24} color="black" />,
                 }}
             />

@@ -10,8 +10,8 @@ import {
     TextInput,
     Alert
 } from 'react-native';
-import { collection, getDocs, addDoc } from "firebase/firestore";
-import { db } from "../database/firebaseConfig.js";
+import { collection, getDocs, addDoc, doc, updateDoc, query, where, getDoc } from "firebase/firestore";
+import { db, auth } from "../database/firebaseConfig.js";
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system'; // si no se usa, puedes quitarlo
 
@@ -88,15 +88,32 @@ const ModalRegistrarTienda = ({ modalVisible, setModalVisible, recargarTiendas }
     };
 
     const guardarTienda = async () => {
-       // const datosValidados = await validarDatos({ nuevaTienda });
+        //const datosValidados = await validarDatos({ nuevaTienda });
 
         //if (datosValidados) {
             try {
-                await addDoc(collection(db, 'tienda'), {
+                const tiendaRef = await addDoc(collection(db, 'tienda'), {
                     nombre,
                     foto,
                     fechaCreacion: new Date(),
+                    admins: auth.currentUser ? [auth.currentUser.email] : [],
                 });
+
+                // Vincular tienda al usuario administrador actual (array tiendas)
+                const current = auth.currentUser;
+                if (current && current.email) {
+                    const usuarioQuery = query(collection(db, 'usuario'), 
+                    where('correo', '==', current.email));
+                    const usuarioSnap = await getDocs(usuarioQuery);
+                    if (!usuarioSnap.empty) {
+                        const userDoc = usuarioSnap.docs[0];
+                        const userRef = doc(db, 'usuario', userDoc.id);
+                        const userData = userDoc.data();
+                        const actuales = Array.isArray(userData.tiendas) ? userData.tiendas : [];
+                        const nuevas = actuales.includes(tiendaRef.id) ? actuales : [...actuales, tiendaRef.id];
+                        await updateDoc(userRef, { tiendas: nuevas });
+                    }
+                }
 
                 // limpiar y cerrar
                 limpiarFormulario();
@@ -108,8 +125,9 @@ const ModalRegistrarTienda = ({ modalVisible, setModalVisible, recargarTiendas }
                 console.error('Error al guardar tienda: ', error);
                 Alert.alert('Error', 'No se pudo guardar la tienda.');
             }
-       // }
+        //}
     };
+
 
     return (
         <Modal
@@ -153,6 +171,7 @@ const ModalRegistrarTienda = ({ modalVisible, setModalVisible, recargarTiendas }
                                 <Text style={styles.textoBoton}>Seleccionar Imagen</Text>
                             </TouchableOpacity>
                         </View>
+
                         <View style={styles.card}>
                             <Text style={styles.label}>Nombre de la tienda</Text>
                             <TextInput
@@ -162,6 +181,8 @@ const ModalRegistrarTienda = ({ modalVisible, setModalVisible, recargarTiendas }
                                 onChangeText={setNombreTienda}
                             />
                         </View>
+
+
                         <View style={styles.spacer} />
                     </ScrollView>
 
