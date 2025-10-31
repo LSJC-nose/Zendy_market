@@ -1,6 +1,15 @@
 // ../Componentes/BotonActualizarUsuario.js
 import React, { useState, useEffect } from 'react';
-import { Modal, Text, TouchableOpacity, View, StyleSheet, TextInput, Alert, ActivityIndicator } from 'react-native';
+import {
+  Modal,
+  Text,
+  TouchableOpacity,
+  View,
+  StyleSheet,
+  TextInput,
+  Alert,
+  ActivityIndicator,
+} from 'react-native';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import { db } from '../database/firebaseConfig';
 import { doc, updateDoc } from 'firebase/firestore';
@@ -12,7 +21,6 @@ const BotonActualizarUsuario = ({ id, usuarioData, onUpdated }) => {
   const [contraseña, setContraseña] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  // Carga datos cuando cambia usuarioData
   useEffect(() => {
     if (usuarioData && id) {
       setNombre(usuarioData.nombre || '');
@@ -51,7 +59,7 @@ const BotonActualizarUsuario = ({ id, usuarioData, onUpdated }) => {
 
       Alert.alert('Éxito', 'Usuario actualizado correctamente');
       setVisible(false);
-      if (onUpdated) onUpdated(); // ← Recarga la lista
+      if (onUpdated) onUpdated(); // ← RECARGA LA TABLA
     } catch (error) {
       console.error('Error al actualizar:', error);
       Alert.alert('Error', `No se pudo actualizar: ${error.message}`);
@@ -73,16 +81,17 @@ const BotonActualizarUsuario = ({ id, usuarioData, onUpdated }) => {
 
             <TextInput
               style={styles.input}
-              placeholder="Nombre"
+              placeholder="Nombre completo"
               value={nombre}
               onChangeText={setNombre}
             />
             <TextInput
               style={styles.input}
-              placeholder="Correo"
+              placeholder="Correo electrónico"
               value={correo}
               onChangeText={setCorreo}
               keyboardType="email-address"
+              autoCapitalize="none"
             />
             <TextInput
               style={styles.input}
@@ -118,13 +127,13 @@ const BotonActualizarUsuario = ({ id, usuarioData, onUpdated }) => {
 };
 
 const styles = StyleSheet.create({
-  boton: { padding: 8 },
+  boton: { padding: 8, backgroundColor: '#e3f2fd', borderRadius: 8 },
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' },
-  modal: { backgroundColor: 'white', padding: 20, borderRadius: 12, width: '85%', elevation: 5 },
-  titulo: { fontSize: 20, fontWeight: 'bold', marginBottom: 15, color: '#2c3e50' },
-  input: { width: '100%', borderWidth: 1, borderColor: '#ddd', padding: 12, borderRadius: 8, marginBottom: 12, backgroundColor: '#f9f9f9' },
-  filaBoton: { flexDirection: 'row', justifyContent: 'space-between', width: '100%', marginTop: 10 },
-  botonAccion: { flex: 1, marginHorizontal: 5, padding: 12, borderRadius: 8, alignItems: 'center' },
+  modal: { backgroundColor: 'white', padding: 22, borderRadius: 14, width: '88%', elevation: 10 },
+  titulo: { fontSize: 20, fontWeight: 'bold', marginBottom: 18, color: '#2c3e50', textAlign: 'center' },
+  input: { borderWidth: 1, borderColor: '#ddd', backgroundColor: '#f9f9f9', padding: 14, borderRadius: 10, marginBottom: 14, fontSize: 16 },
+  filaBoton: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 },
+  botonAccion: { flex: 1, padding: 14, borderRadius: 10, alignItems: 'center', marginHorizontal: 6 },
   cancelar: { backgroundColor: '#e74c3c' },
   confirmar: { backgroundColor: '#27ae60' },
   textoAccion: { color: 'white', fontWeight: 'bold', fontSize: 16 },

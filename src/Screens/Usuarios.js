@@ -1,22 +1,17 @@
 // src/Screens/Usuarios.js
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import {
   View,
   Text,
   TextInput,
-  Button,
   StyleSheet,
-  Alert,
   ScrollView,
   ActivityIndicator,
 } from "react-native";
-import * as ImagePicker from "expo-image-picker";
 import { db } from "../database/firebaseConfig.js";
 import {
   collection,
   getDocs,
-  addDoc,
-  updateDoc,
   deleteDoc,
   doc,
 } from "firebase/firestore";
@@ -24,13 +19,7 @@ import TablaUsuarios from "../Componentes/TablaUsuarios.js";
 
 const Usuarios = () => {
   const [usuarios, setUsuarios] = useState([]);
-  const [nuevaUsuario, setNuevaUsuario] = useState({
-    nombre: "",
-    correo: "",
-    contraseña: "",
-  });
-  const [modoEdicion, setModoEdicion] = useState(false);
-  const [usuarioId, setUsuarioId] = useState(null);
+  const [busqueda, setBusqueda] = useState("");
   const [loading, setLoading] = useState(false);
 
   // CARGAR USUARIOS
@@ -45,7 +34,6 @@ const Usuarios = () => {
       setUsuarios(data);
     } catch (error) {
       console.error("Error al cargar usuarios:", error);
-      Alert.alert("Error", "No se pudieron cargar los usuarios.");
     } finally {
       setLoading(false);
     }
@@ -55,87 +43,25 @@ const Usuarios = () => {
     cargarDatos();
   }, []);
 
+  // FILTRAR USUARIOS
+  const usuariosFiltrados = useMemo(() => {
+    if (!busqueda.trim()) return usuarios;
+    const term = busqueda.toLowerCase();
+    return usuarios.filter(
+      (u) =>
+        u.nombre?.toLowerCase().includes(term) ||
+        u.correo?.toLowerCase().includes(term)
+    );
+  }, [usuarios, busqueda]);
+
   // ELIMINAR USUARIO
   const eliminarUsuario = async (id) => {
     setLoading(true);
     try {
       await deleteDoc(doc(db, "usuario", id));
-      Alert.alert("Éxito", "Usuario eliminado");
-      cargarDatos();
+      cargarDatos(); // ← Recarga automática
     } catch (error) {
       console.error("Error al eliminar:", error);
-      Alert.alert("Error", "No se pudo eliminar.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // EDITAR USUARIO
-  const editarUsuario = (usuario) => {
-    setNuevaUsuario({
-      nombre: usuario.nombre || "",
-      correo: usuario.correo || "",
-      contraseña: usuario.contraseña || "",
-    });
-    setUsuarioId(usuario.id);
-    setModoEdicion(true);
-  };
-
-  // MANEJO DE INPUTS
-  const manejarCambio = (campo, valor) => {
-    setNuevaUsuario((prev) => ({ ...prev, [campo]: valor }));
-  };
-
-  // GUARDAR NUEVO USUARIO
-  const guardarUsuario = async () => {
-    if (!nuevaUsuario.nombre.trim() || !nuevaUsuario.correo.trim()) {
-      Alert.alert("Error", "Nombre y correo son obligatorios");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      await addDoc(collection(db, "usuario"), {
-        nombre: nuevaUsuario.nombre,
-        correo: nuevaUsuario.correo,
-        contraseña: nuevaUsuario.contraseña || "",
-        fechaCreacion: new Date(),
-      });
-
-      setNuevaUsuario({ nombre: "", correo: "", contraseña: "" });
-      Alert.alert("Éxito", "Usuario agregado");
-      cargarDatos();
-    } catch (error) {
-      console.error("Error al guardar:", error);
-      Alert.alert("Error", "No se pudo guardar.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // ACTUALIZAR USUARIO
-  const actualizarUsuario = async () => {
-    if (!nuevaUsuario.nombre.trim() || !nuevaUsuario.correo.trim()) {
-      Alert.alert("Error", "Nombre y correo son obligatorios");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      await updateDoc(doc(db, "usuario", usuarioId), {
-        nombre: nuevaUsuario.nombre,
-        correo: nuevaUsuario.correo,
-        contraseña: nuevaUsuario.contraseña || "",
-      });
-
-      setNuevaUsuario({ nombre: "", correo: "", contraseña: "" });
-      setModoEdicion(false);
-      setUsuarioId(null);
-      Alert.alert("Éxito", "Usuario actualizado");
-      cargarDatos();
-    } catch (error) {
-      console.error("Error al actualizar:", error);
-      Alert.alert("Error", "No se pudo actualizar.");
     } finally {
       setLoading(false);
     }
@@ -143,33 +69,58 @@ const Usuarios = () => {
 
   return (
     <ScrollView style={styles.container}>
+      <Text style={styles.titulo}>Lista de Usuarios</Text>
+
+      {/* BUSCADOR */}
+      <View style={styles.buscadorContainer}>
+        <TextInput
+          style={styles.buscador}
+          placeholder="Buscar por nombre o correo..."
+          value={busqueda}
+          onChangeText={setBusqueda}
+          clearButtonMode="while-editing"
+        />
+      </View>
+
+      {/* TABLA */}
+      <View style={styles.tablaContainer}>
+        {loading ? (
+          <ActivityIndicator size="large" color="#3498db" />
+        ) : (
+          <TablaUsuarios
+            usuarios={usuariosFiltrados}
+            eliminarUsuario={eliminarUsuario}
+            cargarDatos={cargarDatos}  // ← PASA LA FUNCIÓN
+          />
+        )}
+      </View>
+
+      {/*
+      FORMULARIO DE REGISTRO / EDICIÓN
+      */}
+      {/*
       <Text style={styles.titulo}>
         {modoEdicion ? "Editar Usuario" : "Registrar Usuario"}
       </Text>
 
-      {/* FORMULARIO */}
-
-      {/*
       <TextInput
         style={styles.input}
         placeholder="Nombre completo"
         value={nuevaUsuario.nombre}
-        onChangeText={(texto) => manejarCambio("nombre", texto)}
+        onChangeText={(t) => manejarCambio("nombre", t)}
       />
-
       <TextInput
         style={styles.input}
         placeholder="Correo electrónico"
         value={nuevaUsuario.correo}
-        onChangeText={(texto) => manejarCambio("correo", texto)}
+        onChangeText={(t) => manejarCambio("correo", t)}
         keyboardType="email-address"
       />
-
       <TextInput
         style={styles.input}
         placeholder="Contraseña (opcional)"
         value={nuevaUsuario.contraseña}
-        onChangeText={(texto) => manejarCambio("contraseña", texto)}
+        onChangeText={(t) => manejarCambio("contraseña", t)}
         secureTextEntry
       />
 
@@ -179,22 +130,7 @@ const Usuarios = () => {
         disabled={loading}
         color={modoEdicion ? "#e67e22" : "#27ae60"}
       />
-
       */}
-
-      {/* TABLA DE USUARIOS */}
-      <View style={styles.tablaContainer}>
-        {loading ? (
-          <ActivityIndicator size="large" color="#3498db" />
-        ) : (
-          <TablaUsuarios
-            usuarios={usuarios}
-            eliminarUsuario={eliminarUsuario}
-            editarUsuario={editarUsuario}
-            onUpdated={cargarDatos}  // ← AÑADE ESTO
-          />
-        )}
-      </View>
     </ScrollView>
   );
 };
@@ -212,17 +148,24 @@ const styles = StyleSheet.create({
     textAlign: "center",
     color: "#2c3e50",
   },
-  input: {
+  buscadorContainer: {
+    marginBottom: 20,
+  },
+  buscador: {
     borderWidth: 1,
-    borderColor: "#ddd",
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 12,
+    borderColor: "#ccc",
+    padding: 14,
+    borderRadius: 12,
     backgroundColor: "#fff",
     fontSize: 16,
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
   },
   tablaContainer: {
-    marginTop: 30,
+    flex: 1,
   },
 });
 
