@@ -6,76 +6,68 @@ import {
   TextInput,
   FlatList,
   ScrollView,
-  TouchableOpacity
+  TouchableOpacity,
+  ActivityIndicator,  // ← Para loading
 } from 'react-native';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import Producto from '../Componentes/Productos';
 import { useNavigation } from '@react-navigation/native';
+import React, { useState, useEffect } from 'react';  // ← Hooks para estado y fetch
+import { db } from '../database/firebaseConfig.js';  // ← Import de Firebase
+import {
+  collection,
+  getDocs,
+} from 'firebase/firestore';  // ← Solo getDocs para lectura
 
 export default function vistaProductos() {
   const navigation = useNavigation();
-  const Productos = [
-    {
-      id: 1,
-      image: require('../../IMAGENES/ows.png'),
-      precio: '12',
-      descripcion: "A Room of One's Own",
-      hora_mes: '5 hours ago',
-      fondoColor: 'rgb(125, 183, 219)',
-      cora: 'heart',
-    },
-    {
-      id: 2,
-      image: require('../../IMAGENES/wireless.png'),
-      precio: '50',
-      descripcion: 'Wireless headphones',
-      hora_mes: '8 hours ago',
-      fondoColor: 'rgb(163, 227, 255)',
-      cora: 'heart',
-    },
-    {
-      id: 3,
-      image: require('../../IMAGENES/zapa.png'),
-      precio: '10',
-      descripcion: 'White sneakers',
-      hora_mes: '3 hours ago',
-      fondoColor: 'rgb(255, 194, 203)',
-      cora: 'heart',
-    },
-    {
-      id: 4,
-      image: require('../../IMAGENES/camera.png'),
-      precio: '12',
-      descripcion: 'Camera-Video & photo',
-      hora_mes: '6 hours ago',
-      fondoColor: 'rgb(165, 143, 255)',
-      cora: 'heart',
-    },
-    {
-      id: 5,
-      image: require('../../IMAGENES/oso.png'),
-      precio: '15',
-      descripcion: 'Teddy',
-      hora_mes: '10 hours ago',
-      fondoColor: 'rgb(189, 226, 242)',
-      cora: 'heart',
-    },
-    {
-      id: 6,
-      image: require('../../IMAGENES/cartera.png'),
-      precio: '50',
-      descripcion: 'Makeup travel bag',
-      hora_mes: '12 hours ago',
-      fondoColor: 'rgb(255, 236, 166)',
-      cora: 'heart',
-    },
-  ];
+  const [productos, setProductos] = useState([]);  // ← Estado para productos de Firebase
+  const [loading, setLoading] = useState(true);  // ← Estado para loading
+  const [busqueda, setBusqueda] = useState('');  // ← Estado para filtro de búsqueda
+
+  // CARGAR PRODUCTOS
+  const cargarDatos = async () => {
+    try {
+      const querySnapshot = await getDocs(collection(db, 'productos'));
+      const data = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),  // ← Mapea todos los campos (incluyendo imagen base64)
+      }));
+      setProductos(data);
+    } catch (error) {
+      console.error('Error al cargar productos:', error);
+      // Opcional: Alert.alert('Error', 'No se pudieron cargar los productos.');
+    } finally {
+      setLoading(false);  // ← Siempre oculta loading
+    }
+  };
+
+  useEffect(() => {
+    cargarDatos();  // ← Carga inicial al montar la pantalla
+  }, []);
+
+  // FILTRAR PRODUCTOS POR BÚSQUEDA
+  const productosFiltrados = productos.filter((item) =>
+    item.descripcion?.toLowerCase().includes(busqueda.toLowerCase()) ||
+    item.nombre?.toLowerCase().includes(busqueda.toLowerCase()) ||
+    item.precio?.toString().includes(busqueda)
+  );
+
+  // MOSTRAR LOADING SI NO HAY DATOS
+  if (loading) {
+    return (
+      <View style={[styles.container, styles.loadingContainer]}>
+        <ActivityIndicator size="large" color="#529c6bff" />
+        <Text style={styles.loadingText}>Cargando productos desde Firebase...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
       <StatusBar style="auto" />
 
-      {/* Buscador */}
+      {/* BUSCADOR ← Actualizado: Ahora filtra en tiempo real */}
       <View style={styles.contenedor_buscador}>
         <View style={styles.buscador}>
           <FontAwesome name="search" size={20} color="black" />
@@ -83,30 +75,32 @@ export default function vistaProductos() {
             style={styles.textoBuscador}
             placeholder="Buscar"
             placeholderTextColor="#753c3cff"
+            value={busqueda}
+            onChangeText={setBusqueda}  // ← Actualiza el filtro
           />
         </View>
       </View>
 
-      {/* Scroll vertical de productos */}
+      {/* SCROLL VERTICAL DE PRODUCTOS ← Actualizado: Usa productosFiltrados */}
       <ScrollView style={styles.productosContainer} showsVerticalScrollIndicator={false}>
         <Text style={styles.titulo}>Explora una gran variedad de productos</Text>
         <FlatList
-          data={Productos}
+          data={productosFiltrados}  // ← Datos dinámicos filtrados
           horizontal
           showsHorizontalScrollIndicator={false}
-          keyExtractor={(item) => item.id.toString()}
+          keyExtractor={(item) => item.id.toString()}  // ← Usa id real de Firebase
           ItemSeparatorComponent={() => <View style={{ width: 12 }} />}
           contentContainerStyle={{ paddingHorizontal: 10 }}
           renderItem={({ item }) => (
             <TouchableOpacity onPress={() => navigation.navigate('DetalleProducto', { producto: item })}>
               <Producto
-                image={item.image}
-                precio={item.precio}
-                descripcion={item.descripcion}
-                hora_mes={item.hora_mes}
-                fondoColor={item.fondoColor}
-                cora={item.cora}
-                oferta={item.oferta}
+                image={item.imagen}  // ← Base64/URL de Firebase
+                precio={item.precio?.toString() || 'N/A'}  // ← Fallback
+                descripcion={item.descripcion || item.nombre || 'Sin descripción'}  // ← Fallback
+                hora_mes={item.hora_mes || 'Reciente'}  // ← Fallback
+                fondoColor={item.fondoColor || 'rgb(125, 183, 219)'}  // ← Fallback
+                cora={item.cora || 'heart'}  // ← Fallback
+                oferta={item.oferta}  // ← Si existe en DB
               />
             </TouchableOpacity>
           )}
@@ -114,7 +108,7 @@ export default function vistaProductos() {
 
         <Text style={styles.titulo}>Consigue los equipos más destacados</Text>
         <FlatList
-          data={Productos}
+          data={productosFiltrados}
           horizontal
           showsHorizontalScrollIndicator={false}
           keyExtractor={(item) => item.id.toString()}
@@ -123,12 +117,12 @@ export default function vistaProductos() {
           renderItem={({ item }) => (
             <TouchableOpacity onPress={() => navigation.navigate('DetalleProducto', { producto: item })}>
               <Producto
-                image={item.image}
-                precio={item.precio}
-                descripcion={item.descripcion}
-                hora_mes={item.hora_mes}
-                fondoColor={item.fondoColor}
-                cora={item.cora}
+                image={item.imagen}
+                precio={item.precio?.toString() || 'N/A'}
+                descripcion={item.descripcion || item.nombre || 'Sin descripción'}
+                hora_mes={item.hora_mes || 'Reciente'}
+                fondoColor={item.fondoColor || 'rgb(125, 183, 219)'}
+                cora={item.cora || 'heart'}
                 oferta={item.oferta}
               />
             </TouchableOpacity>
@@ -137,7 +131,7 @@ export default function vistaProductos() {
 
         <Text style={styles.titulo}>Lo más popular esta semana</Text>
         <FlatList
-          data={Productos}
+          data={productosFiltrados}
           horizontal
           showsHorizontalScrollIndicator={false}
           keyExtractor={(item) => item.id.toString()}
@@ -146,12 +140,12 @@ export default function vistaProductos() {
           renderItem={({ item }) => (
             <TouchableOpacity onPress={() => navigation.navigate('DetalleProducto', { producto: item })}>
               <Producto
-                image={item.image}
-                precio={item.precio}
-                descripcion={item.descripcion}
-                hora_mes={item.hora_mes}
-                fondoColor={item.fondoColor}
-                cora={item.cora}
+                image={item.imagen}
+                precio={item.precio?.toString() || 'N/A'}
+                descripcion={item.descripcion || item.nombre || 'Sin descripción'}
+                hora_mes={item.hora_mes || 'Reciente'}
+                fondoColor={item.fondoColor || 'rgb(125, 183, 219)'}
+                cora={item.cora || 'heart'}
                 oferta={item.oferta}
               />
             </TouchableOpacity>
@@ -160,7 +154,7 @@ export default function vistaProductos() {
 
         <Text style={styles.titulo}>Novedades para el hogar</Text>
         <FlatList
-          data={Productos}
+          data={productosFiltrados}
           horizontal
           showsHorizontalScrollIndicator={false}
           keyExtractor={(item) => item.id.toString()}
@@ -169,12 +163,12 @@ export default function vistaProductos() {
           renderItem={({ item }) => (
             <TouchableOpacity onPress={() => navigation.navigate('DetalleProducto', { producto: item })}>
               <Producto
-                image={item.image}
-                precio={item.precio}
-                descripcion={item.descripcion}
-                hora_mes={item.hora_mes}
-                fondoColor={item.fondoColor}
-                cora={item.cora}
+                image={item.imagen}
+                precio={item.precio?.toString() || 'N/A'}
+                descripcion={item.descripcion || item.nombre || 'Sin descripción'}
+                hora_mes={item.hora_mes || 'Reciente'}
+                fondoColor={item.fondoColor || 'rgb(125, 183, 219)'}
+                cora={item.cora || 'heart'}
                 oferta={item.oferta}
               />
             </TouchableOpacity>
@@ -227,5 +221,16 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingBottom: 20,
+  },
+  //nuevos estilos para cargar
+  loadingContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#529c6bff',
+    textAlign: 'center',
   },
 });
