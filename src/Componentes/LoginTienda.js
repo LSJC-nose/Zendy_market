@@ -140,7 +140,10 @@ const LoginTienda = ({ onLoginSuccess }) => {
             <FontAwesome5 name="apple" size={28} color="black" />
           </View>
         </View>
-
+        <Text style={styles.sincuenta} onPress={() => navigation.navigate('MyTabsCliente')}
+        >
+          Continuar sin cuenta
+        </Text>
         <Text style={styles.textoServiciosCuenta}>Al crear una cuenta, acepto los Términos y la Política de privacidad.</Text>
       </Animated.View>
     </View>
@@ -239,7 +242,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   textoServiciosCuenta: {
-    marginTop: 120,
+    marginTop: 50,
     marginRight: 20,
     marginLeft: 20,
     fontSize: 12,
@@ -266,6 +269,9 @@ const styles = StyleSheet.create({
     marginTop: 10,
     justifyContent: 'space-around',
   },
+  sincuenta: {
+    margin: 29,
+  }
 });
 
 export default LoginTienda;

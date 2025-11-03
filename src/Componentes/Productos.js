@@ -12,6 +12,7 @@ export default function Producto({
   oferta,
   fondoColor,
   cora,
+  nombreTienda,
   isFavorito = false,
   onFavoritoPress = () => {},
 }) {
@@ -40,6 +41,9 @@ export default function Producto({
           </View>
         )}
         <Text style={styles.descripcion}>{descripcion}</Text>
+        {nombreTienda && (
+          <Text style={styles.nombreTienda}>Tienda: {nombreTienda}</Text>
+        )}
         <Text style={styles.mes_hora}>{hora_mes}</Text>
         <Text style={styles.explora}>{explora}</Text>
       </View>
@@ -51,7 +55,7 @@ const styles = StyleSheet.create({
   tarjeta: {
     backgroundColor: "#ffffffff",
     borderRadius: 16,
-    height: 230,
+    height: 250,
     borderWidth: 2,
     borderColor: '#e4e0e0ff',
   },
@@ -86,6 +90,13 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     fontSize: 11, fontFamily: "Merriweather",
     color: '#999',
+  },
+  nombreTienda: {
+    marginLeft: 10,
+    fontSize: 12,
+    fontFamily: "Merriweather",
+    color: '#4A90E2',
+    fontWeight: '600',
   },
   cora_pre: {
     flexDirection: "row",

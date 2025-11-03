@@ -31,6 +31,7 @@ const { width } = Dimensions.get('window');
 export default function Home() {
   const [categorias, setCategorias] = useState([]);
   const [productos,  setProductos] = useState([]);
+  const [tiendas, setTiendas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [busqueda, setBusqueda] = useState('');
   const [favoritos, setFavoritos] = useState({});
@@ -77,6 +78,10 @@ export default function Home() {
         const prodSnapshot = await getDocs(collection(db, 'productos'));
         const prods = prodSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
         setProductos(prods);
+
+        const tiendaSnapshot = await getDocs(collection(db, 'tienda'));
+        const tiendasData = tiendaSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+        setTiendas(tiendasData);
       } catch (error) {
         console.error('Error cargando datos:', error);
       } finally {
@@ -101,6 +106,11 @@ export default function Home() {
   }, [categorias, busqueda]);
 
   const navigation = useNavigation();
+
+  const obtenerNombreTienda = (tiendaId) => {
+    const tienda = tiendas.find(t => t.id === tiendaId);
+    return tienda ? tienda.nombre : '';
+  };
 
   return (
     <View style={styles.container}>
@@ -191,6 +201,7 @@ export default function Home() {
                     hora_mes={item.stock}
                     explora=""
                     fondoColor="#f8f9fa"
+                    nombreTienda={obtenerNombreTienda(item.tiendaId)}
                     isFavorito={!!favoritos[item.id]}
                     onFavoritoPress={() => toggleFavorito(item.id)}
                   />
