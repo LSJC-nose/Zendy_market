@@ -22,7 +22,8 @@ import Usuarios from './src/Screens/Usuarios.js';
 import TodasTiendasSuper from './src/Screens/TodasTiendasSuper.js';
 import SuperAdmon from './src/Screens/SuperAdmon.js';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-import CategotiaSeleccionada from './src/Screens/CategotiaSeleccionada.js';
+import CategoriaSeleccionada from './src/Screens/CategoriaSeleccionada.js';
+
 // Declaración de navegadores
 const Tab = createBottomTabNavigator();
 const StackNav = createStackNavigator();
@@ -61,6 +62,8 @@ function StackHomeCliente() {
             <StackNav.Screen name="DetailHome" component={VistaProductos} />
             <StackNav.Screen name="Ofertas" component={Ofertas} />
             <StackNav.Screen name="DetalleProducto" component={DetalleProductoScreen} />
+             <StackNav.Screen name="CategoriaSeleccionada" component={CategoriaSeleccionada} />
+
         </StackNav.Navigator>
     );
 }
@@ -97,15 +100,7 @@ function MyTabsCliente() {
                 }}
             />
 
-            <Tab.Screen
-                name="CategotiaSeleccionada"
-                component={CategotiaSeleccionada}
-                options={{
-                    tabBarLabel: 'CategotiaSeleccionada',
-                    tabBarIcon: ({ color }) => <AntDesign name="user" size={30} color={color} />,
-                    headerShown: false,
-                }}
-            />
+           
         </Tab.Navigator>
     );
 }

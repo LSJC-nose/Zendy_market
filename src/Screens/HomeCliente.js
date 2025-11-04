@@ -156,22 +156,26 @@ export default function Home() {
 
         <View style={styles.contenedorCategoria}>
           {categoriasFiltradas.length > 0 ? (
-            <TouchableOpacity onPress={() => navigation.navigate('CategotiaSeleccionada')}>
+            
             <FlatList
-              data={categoriasFiltradas}
-              horizontal
-              keyExtractor={(item) => item.id}
-              renderItem={({ item }) => (
-                <CategoriaItem
-                  icon={item.icon || 'question-circle'}
-                  imagen={item.foto}
-                  texto={item.nombre}
-                />
-              )}
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.categoriasLista}
-            />
-            </TouchableOpacity>
+  data={categoriasFiltradas}
+  horizontal
+  keyExtractor={(item) => item.id}
+  renderItem={({ item }) => (
+
+    
+    <TouchableOpacity onPress={() => navigation.navigate('CategoriaSeleccionada', {
+  nombre: item.nombre  // ← SOLO EL NOMBRE
+})}>
+  <CategoriaItem imagen={item.foto} texto={item.nombre} />
+</TouchableOpacity>
+
+
+
+  )}
+  showsHorizontalScrollIndicator={false}
+  contentContainerStyle={styles.categoriasLista}
+/>
           ) : (
             <Text style={styles.sinProductos}>
               {loading ? 'Cargando categorías...' : 'No hay categorías disponibles'}

@@ -1,43 +1,56 @@
+// ../Componentes/TablaCategorias.js
 import React from 'react';
 import { View, Text, ScrollView, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import BotonEliminarProducto from './BotonEliminarProducto';
 
 const TablaCategorias = ({ productos, eliminarProducto, editarProducto }) => {
+  const navigation = useNavigation(); // ← AÑADIDO
+
   return (
     <View style={styles.container}>
       <Text style={styles.titulo}>Lista de Categorías</Text>
-
       <View style={[styles.fila, styles.encabezado]}>
         <Text style={[styles.celda, styles.textoEncabezado]}>Imagen</Text>
         <Text style={[styles.celda, styles.textoEncabezado]}>Nombre</Text>
         <Text style={[styles.celda, styles.textoEncabezado]}>Acciones</Text>
       </View>
-
       <ScrollView style={styles.scroll}>
         {productos.map((item) => (
           <View key={item.id} style={styles.fila}>
             <View style={styles.celda}>
               {item.foto ? (
-                <Image
-                  source={{ uri: item.foto }}
-                  style={styles.imagen}
-                />
+                <Image source={{ uri: item.foto }} style={styles.imagen} />
               ) : (
                 <Text style={styles.sinImagen}>Sin imagen</Text>
               )}
             </View>
             <Text style={styles.celda}>{item.nombre}</Text>
             <View style={styles.celdaAcciones}>
-              <BotonEliminarProducto
-                id={item.id}
-                eliminarProducto={eliminarProducto} // ← ¡EXACTO!
-              />
+              {/* VER PRODUCTOS */}
+              <TouchableOpacity
+                style={styles.botonVerProductos}
+                onPress={() => navigation.navigate('CategoriaSeleccionada', {
+                  categoriaId: item.id,
+                  nombre: item.nombre
+                })}
+              >
+                <Text style={styles.textoBoton}>Ver</Text>
+              </TouchableOpacity>
+
+              {/* EDITAR */}
               <TouchableOpacity
                 style={styles.botonEditar}
                 onPress={() => editarProducto(item)}
               >
-                <Text>Editar</Text>
+                <Text style={styles.textoBoton}>Editar</Text>
               </TouchableOpacity>
+
+              {/* ELIMINAR */}
+              <BotonEliminarProducto
+                id={item.id}
+                eliminarProducto={eliminarProducto}
+              />
             </View>
           </View>
         ))}
@@ -61,9 +74,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: '#2c3e50',
   },
-  scroll: {
-    maxHeight: 400,
-  },
+  scroll: { maxHeight: 400 },
   fila: {
     flexDirection: 'row',
     paddingVertical: 10,
@@ -100,11 +111,22 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#999',
   },
+  botonVerProductos: {
+    backgroundColor: '#3498db',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+  },
   botonEditar: {
     backgroundColor: '#f39c12',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 6,
+  },
+  textoBoton: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 12,
   },
 });
 
