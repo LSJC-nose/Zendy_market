@@ -30,7 +30,7 @@ const { width } = Dimensions.get('window');
 
 export default function Home() {
   const [categorias, setCategorias] = useState([]);
-  const [productos,  setProductos] = useState([]);
+  const [productos, setProductos] = useState([]);
   const [tiendas, setTiendas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [busqueda, setBusqueda] = useState('');
@@ -154,7 +154,7 @@ export default function Home() {
         <View style={styles.handle} />
         <Text style={styles.title}>Más de 250 productos en stock</Text>
 
-<View style={styles.contenedorCategoria}>
+        <View style={styles.contenedorCategoria}>
           {categoriasFiltradas.length > 0 ? (
             <FlatList
               data={categoriasFiltradas}
@@ -201,9 +201,18 @@ export default function Home() {
                     hora_mes={item.stock}
                     explora=""
                     fondoColor="#f8f9fa"
-                    nombreTienda={obtenerNombreTienda(item.tiendaId)}
+                    // nombreTienda={obtenerNombreTienda(item.tiendaId)}
                     isFavorito={!!favoritos[item.id]}
                     onFavoritoPress={() => toggleFavorito(item.id)}
+                    onPress={() => navigation.navigate('DetalleProducto', { 
+                      producto: {
+                        ...item,
+                        image: { uri: item.imagen },
+                        descripcion: item.nombre,
+                        precio: item.precio,
+                        rating: item.rating || 4.5,
+                      }
+                    })}
                   />
                 </View>
               ))}
@@ -211,7 +220,7 @@ export default function Home() {
           )}
         </ScrollView>
       </Animated.View>
-    <Notificaciones />
+      <Notificaciones />
     </View>
   );
 }
@@ -298,11 +307,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    marginTop: 10,
+    paddingHorizontal: 20,
+    marginTop: 8,
   },
   tarjeta: {
-    width: (width - 48) / 2, // 2 columnas con margen
+    width: (width - 49) / 2, // 2 columnas con margen
     marginBottom: 16,
     overflow: 'hidden', // ← evita que la imagen se salga
   },

@@ -8,9 +8,6 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 // Importa tus componentes de pantalla
 import Home from './src/Screens/HomeCliente';
 import Settings from './src/Screens/Settings';
-/*import Users from './src/Screens/Users';
-import VistaProductos from './src/Screens/TodosProductos';
-import AnotherHome from './src/Screens/AnotherHome';*/
 import LoginTienda from './src/Componentes/LoginTienda';
 import Suscripcion from './src/Screens/Suscripcion';
 import Tienda from './src/Screens/Tienda';
@@ -98,7 +95,6 @@ function MyTabsCliente() {
                     headerShown: false,
                 }}
             />
-
         </Tab.Navigator>
     );
 }

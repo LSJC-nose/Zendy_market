@@ -8,6 +8,7 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import Producto from '../Componentes/Productos';
@@ -146,18 +147,31 @@ export default function vistaProductos() {
               console.warn(`Producto omitido en render: ${item.id}`);
               return null;  // ← No renderiza si inválido
             }
+            const imageSource = typeof item.imagen === 'string' && item.imagen.startsWith('data:image/')
+              ? { uri: item.imagen }
+              : typeof item.imagen === 'string' && item.imagen.startsWith('http')
+              ? { uri: item.imagen }
+              : { uri: item.imagen || 'https://via.placeholder.com/150?text=No+Imagen' };
+            
             return (
-              <TouchableOpacity onPress={() => navigation.navigate('DetalleProducto', { producto: item })}>
-                <Producto
-                  image={item.imagen || 'https://via.placeholder.com/150?text=No+Imagen'}  // ← Fallback URI válida
-                  precio={item.precio?.toString() || '0'}  // ← Asegura string numérico
-                  descripcion={item.descripcion?.trim() || item.nombre?.trim() || 'Sin descripción'}  // ← Trim y fallback
-                  hora_mes={item.hora_mes?.trim() || 'Reciente'}  // ← Trim
-                  fondoColor={item.fondoColor || 'rgb(125, 183, 219)'}  // ← Fallback
-                  cora={item.cora || 'heart'}  // ← Fallback
-                  oferta={item.oferta}  // ← Si existe en DB
-                />
-              </TouchableOpacity>
+              <Producto
+                image={imageSource}
+                precio={item.precio?.toString() || '0'}
+                descripcion={item.descripcion?.trim() || item.nombre?.trim() || 'Sin descripción'}
+                hora_mes={item.hora_mes?.trim() || 'Reciente'}
+                fondoColor={item.fondoColor || 'rgb(125, 183, 219)'}
+                cora={item.cora || 'heart'}
+                oferta={item.oferta}
+                onPress={() => navigation.navigate('DetalleProducto', { 
+                  producto: {
+                    ...item,
+                    image: imageSource,
+                    descripcion: item.descripcion?.trim() || item.nombre?.trim() || 'Sin descripción',
+                    precio: item.precio?.toString() || '0',
+                    rating: item.rating || 4.5,
+                  }
+                })}
+              />
             );
           }}
         />

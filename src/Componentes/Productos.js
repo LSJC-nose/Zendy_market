@@ -15,9 +15,10 @@ export default function Producto({
   nombreTienda,
   isFavorito = false,
   onFavoritoPress = () => {},
+  onPress = () => {},
 }) {
   return (
-    <View style={styles.tarjeta}>
+    <TouchableOpacity style={styles.tarjeta} onPress={onPress} activeOpacity={0.7}>
       <View style={[styles.contenedor_imagen, { backgroundColor: fondoColor }]}>
         <Image source={image} style={styles.imagen} />
       </View>
@@ -33,21 +34,26 @@ export default function Producto({
               <Text style={styles.precio}>${precio}</Text>
             )}
           </View>
-          <FontAwesome5 name={cora} size={20} color="#6f6f77ff" />
+          <TouchableOpacity onPress={(e) => {
+            e.stopPropagation();
+            onFavoritoPress();
+          }} style={styles.iconoFavorito}>
+            <FontAwesome5 name={cora} size={20} color={isFavorito ? "#ed3946" : "#6f6f77ff"} solid={isFavorito} />
+          </TouchableOpacity>
         </View>
         {oferta && (
           <View style={styles.badgeOferta}>
             <Text style={styles.textoBadge}>¡Oferta! {oferta.descuento}% OFF</Text>
           </View>
         )}
-        <Text style={styles.descripcion}>{descripcion}</Text>
+        <Text style={styles.descripcion} numberOfLines={2}>{descripcion}</Text>
         {nombreTienda && (
           <Text style={styles.nombreTienda}>Tienda: {nombreTienda}</Text>
         )}
-        <Text style={styles.mes_hora}>{hora_mes}</Text>
+       
         <Text style={styles.explora}>{explora}</Text>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 }
 
@@ -59,25 +65,25 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#e4e0e0ff',
   },
+  
   contenedor_imagen: {
-    borderTopLeftRadius: 10,
-    borderTopRightRadius: 10,
-    width: 186,
-    height: 128,
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 18,
+    width: 183,
+    height: 160,
     marginBottom: 10,
     alignItems: "center",
-
     overflow: 'hidden',
   },
   imagen: {
-    width: '100%',
+    marginLeft:-12,
+    width: '96%',
     height: '100%',
   },
-
   precio: {
-    marginTop: 2,
+    marginTop: -10,
     marginLeft: 10,
-    margin: 6,
+    margin: -2,
     fontSize: 24,
     fontWeight: 'bold',
   },
@@ -104,7 +110,7 @@ const styles = StyleSheet.create({
     marginRight: 14,
   },
   precioContainer: {
-  marginLeft: 10,
+  marginLeft: 3,
   margin: 6,
 },
 precioOriginal: {
@@ -129,8 +135,11 @@ badgeOferta: {
   marginBottom: 5,
 },
 textoBadge: {
-  color: 'white',
-  fontSize: 12,
-  fontWeight: 'bold',
-},
+    color: 'white',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  iconoFavorito: {
+    padding: 4,
+  },
 });

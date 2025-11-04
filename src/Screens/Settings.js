@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -10,44 +10,10 @@ import {
 } from 'react-native';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import AntDesign from '@expo/vector-icons/AntDesign';
+import { useCart } from '../Componentes/Carrito'
 
 const Settings = () => {
-  // Estado del carrito (en una app real vendría de un contexto global)
-  const [cartItems, setCartItems] = useState([
-    {
-      id: 1,
-      name: "A Room of One's Own",
-      price: 12,
-      image: require('../../IMAGENES/ows.png'),
-      quantity: 1,
-    },
-    {
-      id: 2,
-      name: "Wireless headphones",
-      price: 50,
-      image: require('../../IMAGENES/wireless.png'),
-      quantity: 2,
-    },
-    {
-      id: 3,
-      name: "White sneakers",
-      price: 10,
-      image: require('../../IMAGENES/zapa.png'),
-      quantity: 1,
-    },
-  ]);
-
-  const updateQuantity = (id, newQuantity) => {
-    if (newQuantity <= 0) {
-      removeItem(id);
-      return;
-    }
-    setCartItems(items =>
-      items.map(item =>
-        item.id === id ? { ...item, quantity: newQuantity } : item
-      )
-    );
-  };
+  const { cartItems, updateQuantity, removeFromCart, getTotalPrice, getTotalItems } = useCart();
 
   const removeItem = (id) => {
     Alert.alert(
@@ -59,53 +25,56 @@ const Settings = () => {
           text: 'Eliminar',
           style: 'destructive',
           onPress: () => {
-            setCartItems(items => items.filter(item => item.id !== id));
+            removeFromCart(id);
           },
         },
       ]
     );
   };
 
-  const getTotalPrice = () => {
-    return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
-  };
-
-  const renderCartItem = ({ item }) => (
-    <View style={styles.cartItem}>
-      <Image source={item.image} style={styles.itemImage} />
-      <View style={styles.itemDetails}>
-        <Text style={styles.itemName}>{item.name}</Text>
-        <Text style={styles.itemPrice}>${item.price}</Text>
-        <View style={styles.quantityContainer}>
-          <TouchableOpacity
-            style={styles.quantityButton}
-            onPress={() => updateQuantity(item.id, item.quantity - 1)}
-          >
-            <AntDesign name="minus" size={16} color="#666" />
-          </TouchableOpacity>
-          <Text style={styles.quantityText}>{item.quantity}</Text>
-          <TouchableOpacity
-            style={styles.quantityButton}
-            onPress={() => updateQuantity(item.id, item.quantity + 1)}
-          >
-            <AntDesign name="plus" size={16} color="#666" />
-          </TouchableOpacity>
+  const renderCartItem = ({ item }) => {
+    // Manejar imágenes desde URI o require
+    const imageSource = typeof item.image === 'string' 
+      ? { uri: item.image } 
+      : item.image || require('../../IMAGENES/ows.png');
+    
+    return (
+      <View style={styles.cartItem}>
+        <Image source={imageSource} style={styles.itemImage} />
+        <View style={styles.itemDetails}>
+          <Text style={styles.itemName}>{item.name}</Text>
+          <Text style={styles.itemPrice}>${item.price.toFixed(2)}</Text>
+          <View style={styles.quantityContainer}>
+            <TouchableOpacity
+              style={styles.quantityButton}
+              onPress={() => updateQuantity(item.id, item.quantity - 1)}
+            >
+              <AntDesign name="minus" size={16} color="#666" />
+            </TouchableOpacity>
+            <Text style={styles.quantityText}>{item.quantity}</Text>
+            <TouchableOpacity
+              style={styles.quantityButton}
+              onPress={() => updateQuantity(item.id, item.quantity + 1)}
+            >
+              <AntDesign name="plus" size={16} color="#666" />
+            </TouchableOpacity>
+          </View>
         </View>
+        <TouchableOpacity
+          style={styles.removeButton}
+          onPress={() => removeItem(item.id)}
+        >
+          <AntDesign name="delete" size={20} color="#ff4444" />
+        </TouchableOpacity>
       </View>
-      <TouchableOpacity
-        style={styles.removeButton}
-        onPress={() => removeItem(item.id)}
-      >
-        <AntDesign name="delete" size={20} color="#ff4444" />
-      </TouchableOpacity>
-    </View>
-  );
+    );
+  };
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Carrito de Compras</Text>
-        <Text style={styles.itemCount}>{cartItems.length} productos</Text>
+        <Text style={styles.itemCount}>{getTotalItems()} {getTotalItems() === 1 ? 'producto' : 'productos'}</Text>
       </View>
 
       {cartItems.length === 0 ? (
@@ -127,9 +96,14 @@ const Settings = () => {
           <View style={styles.footer}>
             <View style={styles.totalContainer}>
               <Text style={styles.totalLabel}>Total:</Text>
-              <Text style={styles.totalPrice}>${getTotalPrice()}</Text>
+              <Text style={styles.totalPrice}>${getTotalPrice().toFixed(2)}</Text>
             </View>
-            <TouchableOpacity style={styles.checkoutButton}>
+            <TouchableOpacity 
+              style={styles.checkoutButton}
+              onPress={() => {
+                Alert.alert('Proceso de pago', 'Funcionalidad de pago próximamente disponible');
+              }}
+            >
               <Text style={styles.checkoutText}>Proceder al Pago</Text>
             </TouchableOpacity>
           </View>
