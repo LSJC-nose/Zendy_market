@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -11,9 +11,43 @@ import {
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import { useCart } from '../Componentes/Carrito'
+import { useNavigation } from '@react-navigation/native';
 
 const Settings = () => {
   const { cartItems, updateQuantity, removeFromCart, getTotalPrice, getTotalItems } = useCart();
+   const navigation = useNavigation();
+  const [nuevaCompra, setNuevaCompra] = useState({
+     nombre: "",
+     foto: "",
+   });
+
+   // GUARDAR NUEVA CATEGORÍA
+  const guardarCompra = async () => {
+    if (!nuevaCompra.nombre.trim()) {
+      Alert.alert("Error", "El nombre es obligatorio");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await addDoc(collection(db, "categoria"), {
+        nombre: nuevaCategoria.nombre,
+        foto: nuevaCategoria.foto,
+        fechaCreacion: new Date(),
+      });
+
+      setNuevaCategoria({ nombre: "", foto: "" });
+      Alert.alert("Éxito", "Categoría agregada");
+      cargarDatos();
+    } catch (error) {
+      console.error("Error al guardar:", error);
+      Alert.alert("Error", "No se pudo guardar.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  
 
   const removeItem = (id) => {
     Alert.alert(
@@ -100,9 +134,7 @@ const Settings = () => {
             </View>
             <TouchableOpacity 
               style={styles.checkoutButton}
-              onPress={() => {
-                Alert.alert('Proceso de pago', 'Funcionalidad de pago próximamente disponible');
-              }}
+              onPress={() => navigation.navigate('Pagos')}
             >
               <Text style={styles.checkoutText}>Proceder al Pago</Text>
             </TouchableOpacity>

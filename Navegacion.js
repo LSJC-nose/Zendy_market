@@ -22,6 +22,7 @@ import Usuarios from './src/Screens/Usuarios.js';
 import TodasTiendasSuper from './src/Screens/TodasTiendasSuper.js';
 import SuperAdmon from './src/Screens/SuperAdmon.js';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
+import CategotiaSeleccionada from './src/Screens/CategotiaSeleccionada.js';
 // Declaración de navegadores
 const Tab = createBottomTabNavigator();
 const StackNav = createStackNavigator();
@@ -91,6 +92,16 @@ function MyTabsCliente() {
                 component={Users}
                 options={{
                     tabBarLabel: 'Usuario',
+                    tabBarIcon: ({ color }) => <AntDesign name="user" size={30} color={color} />,
+                    headerShown: false,
+                }}
+            />
+
+            <Tab.Screen
+                name="CategotiaSeleccionada"
+                component={CategotiaSeleccionada}
+                options={{
+                    tabBarLabel: 'CategotiaSeleccionada',
                     tabBarIcon: ({ color }) => <AntDesign name="user" size={30} color={color} />,
                     headerShown: false,
                 }}

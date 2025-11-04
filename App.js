@@ -1,7 +1,7 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View } from 'react-native';
 import Navegacion from './Navegacion';
-import { CartProvider } from './src/context/Carrito';
+import { CartProvider } from './src/Componentes/Carrito';
 
 export default function App() {
   return (

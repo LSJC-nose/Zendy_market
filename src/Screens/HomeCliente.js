@@ -156,6 +156,7 @@ export default function Home() {
 
         <View style={styles.contenedorCategoria}>
           {categoriasFiltradas.length > 0 ? (
+            <TouchableOpacity onPress={() => navigation.navigate('CategotiaSeleccionada')}>
             <FlatList
               data={categoriasFiltradas}
               horizontal
@@ -170,6 +171,7 @@ export default function Home() {
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.categoriasLista}
             />
+            </TouchableOpacity>
           ) : (
             <Text style={styles.sinProductos}>
               {loading ? 'Cargando categorías...' : 'No hay categorías disponibles'}

@@ -6,7 +6,7 @@ import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import { db } from '../database/firebaseConfig.js';
 import { collection, getDocs } from 'firebase/firestore';
-import { useCart } from '../context/Carrito.js';
+import { useCart } from '../Componentes/Carrito.js';
 
 const { width } = Dimensions.get('window');
 
