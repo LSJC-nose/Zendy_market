@@ -33,7 +33,7 @@ export default function TarjetaTodasTiendas({ tienda }) {
                             style={styles.btn_usuario}
                             onPress={() => { setSelectedTiendaId(item.id); setModalVisible(true); }}
                         >
-                            <Text>Ver Dueño</Text>
+                            <Text>Propietario</Text>
                         </TouchableOpacity>
                     </View>
                 ))}

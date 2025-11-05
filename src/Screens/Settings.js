@@ -21,34 +21,6 @@ const Settings = () => {
      foto: "",
    });
 
-   // GUARDAR NUEVA CATEGORÍA
-  const guardarCompra = async () => {
-    if (!nuevaCompra.nombre.trim()) {
-      Alert.alert("Error", "El nombre es obligatorio");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      await addDoc(collection(db, "categoria"), {
-        nombre: nuevaCategoria.nombre,
-        foto: nuevaCategoria.foto,
-        fechaCreacion: new Date(),
-      });
-
-      setNuevaCategoria({ nombre: "", foto: "" });
-      Alert.alert("Éxito", "Categoría agregada");
-      cargarDatos();
-    } catch (error) {
-      console.error("Error al guardar:", error);
-      Alert.alert("Error", "No se pudo guardar.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  
-
   const removeItem = (id) => {
     Alert.alert(
       'Eliminar producto',
@@ -134,7 +106,7 @@ const Settings = () => {
             </View>
             <TouchableOpacity 
               style={styles.checkoutButton}
-              onPress={() => navigation.navigate('Pagos')}
+              onPress={() => navigation.navigate('PagosClientes')}
             >
               <Text style={styles.checkoutText}>Proceder al Pago</Text>
             </TouchableOpacity>

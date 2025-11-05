@@ -13,6 +13,8 @@ import {
 import AntDesign from '@expo/vector-icons/AntDesign';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../database/firebaseConfig.js';
+import TablaProductos from './TablaProductos';
+import TablaProductosSuperAdmon from './TablaProdSupAdmon.js';
 
 export default function ModalUsuarioDueño({
     visible,
@@ -27,6 +29,7 @@ export default function ModalUsuarioDueño({
 
     const [usuarioDueño, setUsuarioDueño] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [productos, setProductos] = useState([]);
 
     const cargarUsers = async () => {
         try {
@@ -55,31 +58,54 @@ export default function ModalUsuarioDueño({
     };
 
     const cargarNombreTienda = async () => {
-  try {
-    if (!tiendaId) return;
+        try {
+            if (!tiendaId) return;
 
-    const tiendaRef = collection(db, 'tienda');
-    const q = query(tiendaRef, where('__name__', '==', tiendaId));
-    const querySnapshot = await getDocs(q);
+            const tiendaRef = collection(db, 'tienda');
+            const q = query(tiendaRef, where('__name__', '==', tiendaId));
+            const querySnapshot = await getDocs(q);
 
-    if (!querySnapshot.empty) {
-      const tiendaData = querySnapshot.docs[0].data();
-      setNombreTienda(tiendaData.nombre || 'Tienda sin nombre');
-    } else {
-      setNombreTienda('Tienda no encontrada');
-    }
-  } catch (error) {
-    console.error('Error al obtener la tienda:', error);
-    setNombreTienda('Error al cargar la tienda');
-  }
-};
+            if (!querySnapshot.empty) {
+                const tiendaData = querySnapshot.docs[0].data();
+                setNombreTienda(tiendaData.nombre || 'Tienda sin nombre');
+            } else {
+                setNombreTienda('Tienda no encontrada');
+            }
+        } catch (error) {
+            console.error('Error al obtener la tienda:', error);
+            setNombreTienda('Error al cargar la tienda');
+        }
+    };
 
     useEffect(() => {
         if (isVisible) {
+            cargarDatos();
             cargarUsers();
             cargarNombreTienda();
         }
-    }, [isVisible]);
+    }, [isVisible, tiendaId]);
+
+    const cargarDatos = async () => {
+        if (!tiendaId) {
+            setProductos([]);
+            return;
+        }
+        setLoading(true);
+        try {
+            // Consultar solo los productos que pertenecen a la tienda indicada
+            const productosRef = collection(db, 'productos');
+            const q = query(productosRef,
+                where('tiendaId', '==', tiendaId));
+            const querySnapshot = await getDocs(q);
+            const data = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+            setProductos(data);
+        } catch (error) {
+            console.error('Error al obtener documentos:', error);
+            Alert.alert('Error', 'No se pudieron cargar los productos.');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
         <Modal visible={isVisible} animationType="slide" transparent={true} onRequestClose={handleClose}>
@@ -93,13 +119,16 @@ export default function ModalUsuarioDueño({
                             <Text style={styles.nombre}>Tienda: {nombreTienda}</Text>
                             <View style={styles.tarjeta}>
                                 <View style={styles.info}>
-                                    <Text style={styles.nombre}>Dueño: {item.nombre}</Text>
+                                    <Text style={styles.nombre}>Propietario: {item.nombre}</Text>
                                     <Text style={styles.nombre}>Correo: {item.correo}</Text>
                                 </View>
                             </View>
                         </View>
                     ))}
                 </View>
+                <TablaProductosSuperAdmon
+                    productos={productos}
+                />
             </View>
         </Modal>
     );
@@ -114,11 +143,11 @@ const styles = StyleSheet.create({
         padding: 16,
     },
     container: {
-        borderWidth: 1,
         width: '100%',
         maxWidth: 420,
         backgroundColor: '#b7e9ecff',
-        borderRadius: 12,
+        borderTopEndRadius: 12,
+        borderTopStartRadius: 12,
         paddingTop: 8,
         paddingBottom: 16,
         paddingHorizontal: 16,

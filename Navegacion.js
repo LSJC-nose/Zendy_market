@@ -12,6 +12,7 @@ import LoginTienda from './src/Componentes/LoginTienda';
 import Suscripcion from './src/Screens/Suscripcion';
 import Tienda from './src/Screens/Tienda';
 import Pagos from './src/Screens/Pagos';
+import PagosClientes from './src/Screens/PagosClientes.js';
 import CRUDAdmon from './src/Screens/CRUDAdmon';
 import Users from './src/Screens/Users'
 import Categoria from './src/Screens/Categoria';
@@ -62,11 +63,11 @@ function StackHomeCliente() {
             <StackNav.Screen name="DetailHome" component={VistaProductos} />
             <StackNav.Screen name="Ofertas" component={Ofertas} />
             <StackNav.Screen name="DetalleProducto" component={DetalleProductoScreen} />
-             <StackNav.Screen name="CategoriaSeleccionada" component={CategoriaSeleccionada} />
-
+            <StackNav.Screen name="CategoriaSeleccionada" component={CategoriaSeleccionada} />
         </StackNav.Navigator>
     );
 }
+
 
 // Tabs para Cliente
 function MyTabsCliente() {
@@ -100,7 +101,7 @@ function MyTabsCliente() {
                 }}
             />
 
-           
+
         </Tab.Navigator>
     );
 }
@@ -125,16 +126,6 @@ function MyTabsAdmon() {
                 options={{
                     tabBarLabel: 'Tienda',
                     tabBarIcon: ({ color }) => <AntDesign name="shop" size={30} color={color} />,
-                }}
-            />
-
-
-            <Tab.Screen
-                name="Registra tu categoria"
-                component={Categoria}
-                options={{
-                    tabBarLabel: 'categorias',
-                    tabBarIcon: ({ color }) => <MaterialIcons name="category" size={24} color="black" />,
                 }}
             />
 
@@ -174,6 +165,15 @@ function MyTabsSuperAdmon() {
                 }}
             />
 
+             <Tab.Screen
+                name="Registra tu categoria"
+                component={Categoria}
+                options={{
+                    tabBarLabel: 'categorias',
+                    tabBarIcon: ({ color }) => <MaterialIcons name="category" size={24} color="black" />,
+                }}
+            />
+
         </Tab.Navigator>
     );
 }
@@ -190,6 +190,7 @@ function StackLogin() {
             <StackNav.Screen name="Login" component={LoginTienda} />
             <StackNav.Screen name="Suscripcion" component={Suscripcion} />
             <StackNav.Screen name="Pagos" component={Pagos} />
+             <StackNav.Screen name="PagosClientes" component={PagosClientes} />
             <StackNav.Screen name="MyTabsCliente" component={MyTabsCliente} />
             <StackNav.Screen name="MyTabsAdmon" component={MyTabsAdmon} />
             <StackNav.Screen name="MyTabsSuperAdmon" component={MyTabsSuperAdmon} />
