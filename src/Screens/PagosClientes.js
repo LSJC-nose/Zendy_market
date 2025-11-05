@@ -2,51 +2,48 @@ import React, { useState } from 'react';
 import { useCart } from '../Componentes/Carrito';
 import { db } from '../database/firebaseConfig';
 import { addDoc, collection } from 'firebase/firestore';
-import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet,Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, Alert } from 'react-native';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import Fontisto from '@expo/vector-icons/Fontisto';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import { useNavigation } from '@react-navigation/native';
 
 export default function PagosClientes() {
-            const [cardNumber, setCardNumber] = useState('');
-            const [cardName, setCardName] = useState('');
-            const [expiry, setExpiry] = useState('');
-            const [cvv, setCvv] = useState('');
-            const [selectedMethod, setSelectedMethod] = useState('credit');
-            const navigation = useNavigation();
-            const { cartItems, clearCart } = useCart();
+    const [cardNumber, setCardNumber] = useState('');
+    const [cardName, setCardName] = useState('');
+    const [expiry, setExpiry] = useState('');
+    const [cvv, setCvv] = useState('');
+    const [selectedMethod, setSelectedMethod] = useState('credit');
+    const navigation = useNavigation();
+    const { cartItems, clearCart } = useCart();
 
-
-            // GUARDAR COMPRA EN FIRESTORE (todos los productos del carrito)
-            const guardarCompra = async () => {
-                if (!cartItems || cartItems.length === 0) {
-                    Alert.alert('Carrito vacío', 'Agrega productos al carrito antes de pagar');
-                    return;
-                }
-                try {
-                    // Guardar cada producto del carrito como una compra individual
-                    for (const item of cartItems) {
-                        await addDoc(collection(db, 'compras'), {
-                            metodoPago: selectedMethod,
-                            nombreProducto: item.name,
-                            precio: item.price,
-                            cantidad: item.quantity,
-                            tiendaId: item.tiendaId,
-                            fecha: new Date(),
-                            imagen: item.image || null
-                        });
-                    }
-                    clearCart();
-                    Alert.alert('Éxito', 'Compra(s) guardada(s) correctamente');
-                    navigation.navigate('Tienda');
-                } catch (error) {
-                    console.error('Error al guardar compra:', error);
-                    Alert.alert('Error', 'No se pudo guardar la compra');
-                }
-            };
-    
-
+    // GUARDAR COMPRA EN FIRESTORE (todos los productos del carrito)
+    const guardarCompra = async () => {
+        if (!cartItems || cartItems.length === 0) {
+            Alert.alert('Carrito vacío', 'Agrega productos al carrito antes de pagar');
+            return;
+        }
+        try {
+            // Guardar cada producto del carrito como una compra individual
+            for (const item of cartItems) {
+                await addDoc(collection(db, 'compras'), {
+                    metodoPago: selectedMethod,
+                    nombreProducto: item.name,
+                    precio: item.price,
+                    cantidad: item.quantity,
+                    tiendaId: item.tiendaId,
+                    fecha: new Date(),
+                    imagen: item.image || null
+                });
+            }
+            clearCart();
+            Alert.alert('La compra se realizo con', 'Exito');
+            navigation.navigate('MyTabsCliente');
+        } catch (error) {
+            console.error('Error al guardar compra:', error);
+            Alert.alert('Error', 'No se pudo guardar la compra');
+        }
+    };
     return (
         <View style={styles.container}>
             <Text style={styles.section}>Métodos de pago</Text>
