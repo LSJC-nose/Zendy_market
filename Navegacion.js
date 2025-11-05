@@ -24,6 +24,7 @@ import TodasTiendasSuper from './src/Screens/TodasTiendasSuper.js';
 import SuperAdmon from './src/Screens/SuperAdmon.js';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import CategoriaSeleccionada from './src/Screens/CategoriaSeleccionada.js';
+import ProductChart from './src/Screens/Reportes.js';
 
 // Declaración de navegadores
 const Tab = createBottomTabNavigator();
@@ -128,6 +129,14 @@ function MyTabsAdmon() {
                     tabBarIcon: ({ color }) => <AntDesign name="shop" size={30} color={color} />,
                 }}
             />
+                  <Tab.Screen
+                    name="Reportes"
+                    component={ProductChart}
+                    options={{
+                        tabBarLabel: 'ProductChart',
+                        tabBarIcon: ({ color }) => <MaterialIcons name="category" size={24} color="black" />,
+                    }}
+                />
 
         </Tab.Navigator>
     );
