@@ -25,6 +25,7 @@ import SuperAdmon from './src/Screens/SuperAdmon.js';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import CategoriaSeleccionada from './src/Screens/CategoriaSeleccionada.js';
 import ProductChart from './src/Screens/Reportes.js';
+import Direcciones from './src/Screens/Direcciones.js';
 
 // Declaración de navegadores
 const Tab = createBottomTabNavigator();
@@ -129,14 +130,14 @@ function MyTabsAdmon() {
                     tabBarIcon: ({ color }) => <AntDesign name="shop" size={30} color={color} />,
                 }}
             />
-                  <Tab.Screen
-                    name="Reportes"
-                    component={ProductChart}
-                    options={{
-                        tabBarLabel: 'ProductChart',
-                        tabBarIcon: ({ color }) => <MaterialIcons name="category" size={24} color="black" />,
-                    }}
-                />
+            <Tab.Screen
+                name="Reportes"
+                component={ProductChart}
+                options={{
+                    tabBarLabel: 'ProductChart',
+                    tabBarIcon: ({ color }) => <MaterialIcons name="category" size={24} color="black" />,
+                }}
+            />
 
         </Tab.Navigator>
     );
@@ -174,7 +175,7 @@ function MyTabsSuperAdmon() {
                 }}
             />
 
-             <Tab.Screen
+            <Tab.Screen
                 name="Registra tu categoria"
                 component={Categoria}
                 options={{
@@ -199,7 +200,8 @@ function StackLogin() {
             <StackNav.Screen name="Login" component={LoginTienda} />
             <StackNav.Screen name="Suscripcion" component={Suscripcion} />
             <StackNav.Screen name="Pagos" component={Pagos} />
-             <StackNav.Screen name="PagosClientes" component={PagosClientes} />
+            <StackNav.Screen name="Direcciones" component={Direcciones} />
+            <StackNav.Screen name="PagosClientes" component={PagosClientes} />
             <StackNav.Screen name="MyTabsCliente" component={MyTabsCliente} />
             <StackNav.Screen name="MyTabsAdmon" component={MyTabsAdmon} />
             <StackNav.Screen name="MyTabsSuperAdmon" component={MyTabsSuperAdmon} />

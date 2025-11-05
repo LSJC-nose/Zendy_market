@@ -106,7 +106,7 @@ const Settings = () => {
             </View>
             <TouchableOpacity 
               style={styles.checkoutButton}
-              onPress={() => navigation.navigate('PagosClientes')}
+              onPress={() => navigation.navigate('Direcciones')}
             >
               <Text style={styles.checkoutText}>Proceder al Pago</Text>
             </TouchableOpacity>
