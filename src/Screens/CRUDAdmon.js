@@ -1,4 +1,3 @@
-// ...existing code...
 import React, { useState, useEffect } from 'react'
 import {
   SafeAreaView,
@@ -17,46 +16,46 @@ import { useNavigation } from '@react-navigation/native';
 import { auth, db } from '../database/firebaseConfig';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 
-
 export default function CRUDAdmon() {
-    const navigation = useNavigation();
-    const [nombreUsuario, setNombreUsuario] = useState('Usuario');
+  const navigation = useNavigation();
+  const [nombreUsuario, setNombreUsuario] = useState('Usuario');
 
-    useEffect(() => {
-        const obtenerNombreUsuario = async () => {
-            try {
-                const currentUser = auth.currentUser;
-                if (currentUser && currentUser.email) {
-                    const q = query(
-                        collection(db, 'usuario'),
-                        where('correo', '==', currentUser.email)
-                    );
-                    const querySnapshot = await getDocs(q);
-                    querySnapshot.forEach((doc) => {
-                        const data = doc.data();
-                        if (data.nombre) {
-                            setNombreUsuario(data.nombre);
-                        }
-                    });
-                }
-            } catch (error) {
-                console.error('Error al obtener nombre de usuario:', error);
+  useEffect(() => {
+    const obtenerNombreUsuario = async () => {
+      try {
+        const currentUser = auth.currentUser;
+        if (currentUser && currentUser.email) {
+          const q = query(
+            collection(db, 'usuario'),
+            where('correo', '==', currentUser.email)
+          );
+          const querySnapshot = await getDocs(q);
+          querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            if (data.nombre) {
+              setNombreUsuario(data.nombre);
             }
-        };
+          });
+        }
+      } catch (error) {
+        console.error('Error al obtener nombre de usuario:', error);
+      }
+    };
 
-        obtenerNombreUsuario();
-    }, []);
- 
+    obtenerNombreUsuario();
+  }, []);
+
   const stats = [
     { id: '1', icon: '🛒', label: 'Órdenes', value: 12 },
     { id: '2', icon: '💸', label: 'Gastado', value: '$450' },
     { id: '3', icon: '⭐', label: 'Categorías', value: 3 },
   ]
 
+  // ← Cambiado: Tercer quick a "Órdenes" (icon 📦, key 'orders')
   const quick = [
     { id: 'q1', icon: '🛍️', label: 'Mis Órdenes', key: 'orders' },
     { id: 'q2', icon: '💖', label: 'Favoritos', key: 'favorites' },
-    { id: 'q3', icon: '📍', label: 'Direcciones', key: 'addresses' },
+    { id: 'q3', icon: '📦', label: 'Órdenes', key: 'orders' },  // ← Nuevo: Órdenes para admin
     { id: 'q4', icon: '💳', label: 'Métodos de Pago', key: 'payments' },
   ]
 
@@ -66,12 +65,16 @@ export default function CRUDAdmon() {
     { id: 'r3', title: 'Usuario registrado', subtitle: 'Ayer · 11:45' },
   ]
 
+  // ← Actualizado: Navega a 'GestionÓrdenes' si key 'orders'
   const onQuick = (k) => {
-    console.log('Ir a', k)
-    // navegar según k
+    console.log('Ir a', k);
+    if (k === 'orders') {
+      navigation.navigate('GestionÓrdenes');
+    }
+    // ← Agrega más navegación según necesites (e.g., if k === 'favorites' ...)
   }
 
- const handleLogout = () => {
+  const handleLogout = () => {
     Alert.alert(
       'Cerrar Sesión',
       '¿Estás seguro de que quieres cerrar sesión?',
@@ -94,7 +97,6 @@ export default function CRUDAdmon() {
       ]
     );
   };
-
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -259,14 +261,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 1 },
     shadowRadius: 4,
   },
-    logoutButton: {
-    backgroundColor: '#ff4444',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: 10,
-  },
   recentTitle: { fontSize: 14, fontWeight: '600', color: '#142b44' },
   recentSub: { fontSize: 12, color: '#7b8a98', marginTop: 4 },
 
@@ -277,4 +271,13 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   recentBtnText: { color: '#fff', fontWeight: '600' },
-})
+  logoutButton: {
+    backgroundColor: '#ff4444',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  logoutText: { color: '#fff', fontWeight: '600' },
+});

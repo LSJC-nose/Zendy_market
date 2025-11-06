@@ -65,7 +65,7 @@ export default function FormularioDirecciones({ onSave = () => { }, saveToFirest
       estado: estado.trim(),
       codigoPostal: codigoPostal.trim(),
       referencias: referencias.trim(),
-      tipo: tipoCasa ? 'Casa' : 'Trabajo',
+      tipo: tipoCasa ? 'Trabajo' : 'Casa',
       creadaEn: new Date(),
     };
 

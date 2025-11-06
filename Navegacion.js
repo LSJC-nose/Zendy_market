@@ -27,6 +27,7 @@ import CategoriaSeleccionada from './src/Screens/CategoriaSeleccionada.js';
 import ProductChart from './src/Screens/Reportes.js';
 import Direcciones from './src/Screens/Direcciones.js';
 import RegistrarUsuarios from './src/Screens/RegistrarUsuarios.js';
+import GestionÓrdenes from './src/Componentes/GestionÓrdenes.js';
 
 // Declaración de navegadores
 const Tab = createBottomTabNavigator();
@@ -137,6 +138,14 @@ function MyTabsAdmon() {
                 options={{
                     tabBarLabel: 'ProductChart',
                     tabBarIcon: ({ color }) => <MaterialIcons name="category" size={24} color="black" />,
+                }}
+            />
+            <Tab.Screen
+                name="GestionÓrdenes"
+                component={GestionÓrdenes}
+                options={{
+                    tabBarLabel: 'Órdenes',
+                    tabBarIcon: ({ color }) => <AntDesign name="profile" size={30} color={color} />,
                 }}
             />
 
