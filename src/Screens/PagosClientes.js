@@ -18,7 +18,7 @@ export default function PagosClientes() {
     const { cartItems, clearCart } = useCart();
 
     // GUARDAR COMPRA EN FIRESTORE (todos los productos del carrito)
-    const guardarCompra = async () => {
+    const guardarventas = async () => {
         if (!cartItems || cartItems.length === 0) {
             Alert.alert('Carrito vacío', 'Agrega productos al carrito antes de pagar');
             return;
@@ -26,7 +26,7 @@ export default function PagosClientes() {
         try {
             // Guardar cada producto del carrito como una compra individual
             for (const item of cartItems) {
-                await addDoc(collection(db, 'compras'), {
+                await addDoc(collection(db, 'ventas'), {
                     metodoPago: selectedMethod,
                     nombreProducto: item.name,
                     precio: item.price,
@@ -128,7 +128,7 @@ export default function PagosClientes() {
                     </View>
                     <View style={styles.pagar}>
                         <Text style={styles.total}>Total $9.99</Text>
-                        <TouchableOpacity style={styles.payButton} onPress={guardarCompra}>
+                        <TouchableOpacity style={styles.payButton} onPress={guardarventas}>
                             <Text style={styles.payText}>Pagar</Text>
                         </TouchableOpacity>
                     </View>

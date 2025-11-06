@@ -16,12 +16,8 @@ import {
 } from 'react-native';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useNavigation } from '@react-navigation/native';
-
-// Firebase
 import { db } from '../database/firebaseConfig.js';
 import { collection, getDocs } from 'firebase/firestore';
-
-// Componentes
 import CategoriaItem from '../Componentes/CategoriaItem.js';
 import Producto from '../Componentes/Productos';
 import Notificaciones from '../Componentes/Notificaciones.js';
@@ -32,6 +28,7 @@ export default function Home() {
   const [categorias, setCategorias] = useState([]);
   const [productos, setProductos] = useState([]);
   const [tiendas, setTiendas] = useState([]);
+  const [ventasPorTienda, setVentasPorTienda] = useState([]);
   const [loading, setLoading] = useState(true);
   const [busqueda, setBusqueda] = useState('');
   const [favoritos, setFavoritos] = useState({});
@@ -71,19 +68,52 @@ export default function Home() {
   useEffect(() => {
     const cargarDatos = async () => {
       try {
+        // CATEGORÍAS
         const catSnapshot = await getDocs(collection(db, 'categoria'));
         const cats = catSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
         setCategorias(cats);
 
+        // PRODUCTOS
         const prodSnapshot = await getDocs(collection(db, 'productos'));
         const prods = prodSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
         setProductos(prods);
 
+        // TIENDAS
         const tiendaSnapshot = await getDocs(collection(db, 'tienda'));
         const tiendasData = tiendaSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
         setTiendas(tiendasData);
+
+        // VENTAS → MÁS VENDIDOS POR TIENDA
+        const ventasSnapshot = await getDocs(collection(db, 'ventas'));
+        const ventas = ventasSnapshot.docs.map(doc => doc.data());
+
+        const ventasMap = {};
+        ventas.forEach(v => {
+          const tiendaId = v.tiendaId;
+          const nombreProd = v.nombreProducto;
+          const cant = v.cantidad || 1;
+          const precio = v.precio || 0;
+          const imagen = v.imagen?.uri || v.imagen;
+
+          if (!ventasMap[tiendaId]) ventasMap[tiendaId] = {};
+          if (!ventasMap[tiendaId][nombreProd]) {
+            ventasMap[tiendaId][nombreProd] = { cantidad: 0, precio, imagen };
+          }
+          ventasMap[tiendaId][nombreProd].cantidad += cant;
+        });
+
+        const topPorTienda = Object.entries(ventasMap).map(([tiendaId, productos]) => {
+          const lista = Object.entries(productos).map(([nombre, data]) => ({
+            nombre,
+            ...data,
+          }));
+          const ordenados = lista.sort((a, b) => b.cantidad - a.cantidad).slice(0, 3);
+          return { tiendaId, productos: ordenados };
+        });
+
+        setVentasPorTienda(topPorTienda);
       } catch (error) {
-        console.error('Error cargando datos:', error);
+        console.error('Error:', error);
       } finally {
         setLoading(false);
       }
@@ -112,6 +142,10 @@ export default function Home() {
     return tienda ? tienda.nombre : '';
   };
 
+  const obtenerProductoPorNombre = (nombre) => {
+    return productos.find(p => p.nombre === nombre) || {};
+  };
+
   return (
     <View style={styles.container}>
       {/* HEADER BUSCADOR */}
@@ -134,14 +168,13 @@ export default function Home() {
         <View style={styles.cuadro}>
           <Text style={styles.tituloCuadro}>¡Explore una gran variedad de productos!</Text>
           <TouchableOpacity style={styles.boton} onPress={() => navigation.navigate('DetailHome')}>
-            <Text style={styles.textoBoton}>Explorar →</Text>
+            <Text style={styles.textoBoton}>Explorar</Text>
           </TouchableOpacity>
         </View>
-
         <View style={styles.cuadro}>
           <Text style={styles.tituloCuadro}>Ver ofertas ¡quizás te interesen!</Text>
           <TouchableOpacity style={styles.boton} onPress={() => navigation.navigate('Ofertas')}>
-            <Text style={styles.textoBoton}>Ver →</Text>
+            <Text style={styles.textoBoton}>Ver</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -154,24 +187,17 @@ export default function Home() {
         <View style={styles.handle} />
         <Text style={styles.title}>Más de 250 productos en stock</Text>
 
+        {/* CATEGORÍAS */}
         <View style={styles.contenedorCategoria}>
           {categoriasFiltradas.length > 0 ? (
-
             <FlatList
               data={categoriasFiltradas}
               horizontal
               keyExtractor={(item) => item.id}
               renderItem={({ item }) => (
-
-
-                <TouchableOpacity onPress={() => navigation.navigate('CategoriaSeleccionada', {
-                  nombre: item.nombre  // ← SOLO EL NOMBRE
-                })}>
+                <TouchableOpacity onPress={() => navigation.navigate('CategoriaSeleccionada', { nombre: item.nombre })}>
                   <CategoriaItem imagen={item.foto} texto={item.nombre} />
                 </TouchableOpacity>
-
-
-
               )}
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.categoriasLista}
@@ -183,49 +209,50 @@ export default function Home() {
           )}
         </View>
 
-        <Text style={styles.produc_dest}>Productos destacados</Text>
-
-        <ScrollView
-          style={styles.scrollContainer}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
-        >
+        {/* PRODUCTOS MÁS VENDIDOS POR TIENDA */}
+        <Text style={styles.produc_dest}>Productos más vendidos por tienda</Text>
+        <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
           {loading ? (
             <ActivityIndicator size="large" color="#3498db" style={{ marginTop: 20 }} />
-          ) : productosFiltrados.length === 0 ? (
-            <Text style={styles.sinProductos}>
-              {busqueda ? 'No se encontraron productos' : 'No hay productos'}
-            </Text>
+          ) : ventasPorTienda.length === 0 ? (
+            <Text style={styles.sinProductos}>No hay ventas aún</Text>
           ) : (
             <View style={styles.productosContainer}>
-              {productosFiltrados.map((item) => (
-                <View key={item.id} style={styles.tarjeta}>
-                  <Producto
-                    image={{ uri: item.imagen }}
-                    precio={item.precio}
-                    descripcion={item.nombre}
-                    hora_mes={item.stock}
-                    explora=""
-                    fondoColor="#f8f9fa"
-                    // nombreTienda={obtenerNombreTienda(item.tiendaId)}
-                    isFavorito={!!favoritos[item.id]}
-                    onFavoritoPress={() => toggleFavorito(item.id)}
-                    onPress={() => navigation.navigate('DetalleProducto', {
-                      producto: {
-                        ...item,
-                        image: { uri: item.imagen },
-                        descripcion: item.nombre,
-                        precio: item.precio,
-                        rating: item.rating || 4.5,
-                      }
-                    })}
-                  />
-                </View>
-              ))}
+              {ventasPorTienda.map(({ tiendaId, productos }) => {
+                const nombreTienda = obtenerNombreTienda(tiendaId);
+                return productos.map((p, i) => {
+                  const prod = obtenerProductoPorNombre(p.nombre);
+                  return (
+                    <View key={`${tiendaId}-${i}`} style={styles.tarjeta}>
+                      <Producto
+                        image={{ uri: p.imagen || prod.imagen || 'https://via.placeholder.com/150' }}
+                        precio={p.precio}
+                        descripcion={p.nombre}
+                        hora_mes={`Vendidos: ${p.cantidad}`}
+                        explora=""
+                        fondoColor="#f8f9fa"
+                        nombreTienda={nombreTienda}
+                        isFavorito={!!favoritos[prod.id]}
+                        onFavoritoPress={() => toggleFavorito(prod.id)}
+                        onPress={() => navigation.navigate('DetalleProducto', {
+                          producto: {
+                            ...prod,
+                            image: { uri: p.imagen || prod.imagen },
+                            descripcion: p.nombre,
+                            precio: p.precio,
+                            rating: prod.rating || 4.5,
+                          }
+                        })}
+                      />
+                    </View>
+                  );
+                });
+              })}
             </View>
           )}
         </ScrollView>
       </Animated.View>
+
       <Notificaciones />
     </View>
   );
@@ -317,9 +344,9 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   tarjeta: {
-    width: (width - 49) / 2, // 2 columnas con margen
+    width: (width - 49) / 2,
     marginBottom: 16,
-    overflow: 'hidden', // ← evita que la imagen se salga
+    overflow: 'hidden',
   },
   contenedorCuadros: {
     flexDirection: 'row',
