@@ -1,267 +1,153 @@
-import { StatusBar } from 'expo-status-bar';
+// src/Screens/vistaProductos.js
+import React, { useEffect, useState, useMemo } from 'react';
 import {
-  StyleSheet,
   Text,
+  StyleSheet,
   View,
   TextInput,
-  FlatList,
-  ScrollView,
-  TouchableOpacity,
   ActivityIndicator,
-  Alert,
+  ScrollView,
+  Dimensions,
 } from 'react-native';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-import Producto from '../Componentes/Productos';
 import { useNavigation } from '@react-navigation/native';
-import React, { useState, useEffect } from 'react';
 import { db } from '../database/firebaseConfig.js';
-import {
-  collection,
-  getDocs,
-} from 'firebase/firestore';
+import { collection, getDocs } from 'firebase/firestore';
+import Producto from '../Componentes/Productos';
 
-export default function vistaProductos() {
+const { width } = Dimensions.get('window');
+const CARD_WIDTH = (width - 60) / 2; // 2 columnas con margen
+
+export default function VistaProductos() {
+  const [productosValidos, setProductosValidos] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [busqueda, setBusqueda] = useState('');
+  const [favoritos, setFavoritos] = useState({});
   const navigation = useNavigation();
-  const [productos, setProductos] = useState([]);  // ← Estado para productos de Firebase
-  const [productosValidos, setProductosValidos] = useState([]);  // ← Nuevo: Solo productos validados
-  const [loading, setLoading] = useState(true);  // ← Estado para loading
-  const [busqueda, setBusqueda] = useState('');  // ← Estado para filtro de búsqueda
 
-  // CARGAR PRODUCTOS
-  const cargarDatos = async () => {
-    setLoading(true);
-    try {
-      const querySnapshot = await getDocs(collection(db, 'productos'));
-      let data = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),  // ← Mapea todos los campos (incluyendo imagen base64)
-      }));
-
-      // ← Validación nueva: Filtra y valida cada producto
-      const productosFiltrados = data.filter((item) => validarProducto(item));
-      if (productosFiltrados.length < data.length) {
-        console.warn(`Productos inválidos filtrados: ${data.length - productosFiltrados.length}`);
-        // Opcional: Alert.alert('Advertencia', 'Algunos productos tienen datos inválidos y fueron omitidos.');
-      }
-      setProductos(data);  // ← Mantiene todos para logs
-      setProductosValidos(productosFiltrados);  // ← Solo válidos para render
-    } catch (error) {
-      console.error('Error al cargar productos:', error);
-      Alert.alert('Error', 'No se pudieron cargar los productos.');
-      setProductosValidos([]);  // ← Fallback vacío
-    } finally {
-      setLoading(false);  // ← Siempre oculta loading
-    }
-  };
-
-  // ← Validación nueva: Función para validar un producto individual
-  const validarProducto = (item) => {
-    if (!item.id || !item.descripcion || !item.precio) {
-      console.warn(`Producto inválido (falta campos básicos): ${item.id}`);
-      return false;
-    }
-    if (typeof item.precio !== 'number' && isNaN(parseFloat(item.precio))) {
-      console.warn(`Precio inválido en producto: ${item.id}`);
-      return false;
-    }
-    if (item.imagen && !item.imagen.startsWith('data:image/')) {
-      console.warn(`Imagen inválida (no base64) en producto: ${item.id}`);
-      // No filtra, usa fallback en render
-    }
-    if (item.descripcion.trim().length === 0) {
-      console.warn(`Descripción vacía en producto: ${item.id}`);
-      return false;
-    }
-    return true;
+  const toggleFavorito = (productoId) => {
+    setFavoritos((prev) => ({
+      ...prev,
+      [productoId]: !prev[productoId],
+    }));
   };
 
   useEffect(() => {
-    cargarDatos();  // ← Carga inicial al montar la pantalla
+    const cargarDatos = async () => {
+      setLoading(true);
+      try {
+        const querySnapshot = await getDocs(collection(db, 'productos'));
+        const data = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+
+        const filtrados = data.filter(
+          (item) =>
+            item.id &&
+            item.nombre &&
+            item.nombre.trim() !== '' &&
+            !isNaN(parseFloat(item.precio))
+        );
+        setProductosValidos(filtrados);
+      } catch (error) {
+        console.error('Error:', error);
+        setProductosValidos([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    cargarDatos();
   }, []);
 
-  // ← Validación nueva en filtro: Solo filtra si búsqueda es válida
-  const productosFiltrados = busqueda.trim() === '' 
-    ? productosValidos 
-    : productosValidos.filter((item) =>
-        item.descripcion?.toLowerCase().includes(busqueda.toLowerCase().trim()) ||
+  const productosFiltrados = useMemo(() => {
+    if (!busqueda.trim()) return productosValidos;
+    return productosValidos.filter(
+      (item) =>
         item.nombre?.toLowerCase().includes(busqueda.toLowerCase().trim()) ||
         item.precio?.toString().includes(busqueda.trim())
-      );
+    );
+  }, [productosValidos, busqueda]);
 
-  // MOSTRAR LOADING SI NO HAY DATOS
   if (loading) {
     return (
       <View style={[styles.container, styles.loadingContainer]}>
-        <ActivityIndicator size="large" color="#529c6bff" />
-        <Text style={styles.loadingText}>Cargando productos desde Firebase...</Text>
+        <ActivityIndicator size="large" color="#3498db" />
+        <Text style={styles.loadingText}>Cargando productos...</Text>
       </View>
     );
   }
 
-  // ← Validación nueva: Si no hay productos válidos, muestra mensaje
-  if (productosValidos.length === 0 && !loading) {
+  if (productosValidos.length === 0) {
     return (
       <View style={[styles.container, styles.loadingContainer]}>
-        <Text style={styles.loadingText}>No hay productos válidos disponibles. Verifica la base de datos.</Text>
+        <Text style={styles.loadingText}>No hay productos disponibles</Text>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <StatusBar style="auto" />
-
-      {/* BUSCADOR ← Actualizado: Valida búsqueda en onChange */}
+      {/* HEADER BUSCADOR */}
       <View style={styles.contenedor_buscador}>
         <View style={styles.buscador}>
-          <FontAwesome name="search" size={20} color="black" />
+          <FontAwesome name="search" size={20} color="#444" />
           <TextInput
             style={styles.textoBuscador}
-            placeholder="Buscar"
-            placeholderTextColor="#753c3cff"
+            placeholder="Buscar productos..."
+            placeholderTextColor="#888"
             value={busqueda}
-            onChangeText={(texto) => {
-              if (texto.trim().length > 50) {  // ← Validación: Límite de longitud
-                Alert.alert('Advertencia', 'La búsqueda no puede exceder 50 caracteres.');
-                return;
-              }
-              setBusqueda(texto);  // ← Actualiza el filtro
-            }}
+            onChangeText={setBusqueda}
           />
         </View>
       </View>
 
-      {/* SCROLL VERTICAL DE PRODUCTOS ← Actualizado: Usa productosFiltrados con validación en render */}
-      <ScrollView style={styles.productosContainer} showsVerticalScrollIndicator={false}>
-        <Text style={styles.titulo}>Explora una gran variedad de productos</Text>
-        <FlatList
-          data={productosFiltrados}  // ← Datos dinámicos filtrados y validados
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          keyExtractor={(item) => item.id.toString()}  // ← Usa id real de Firebase
-          ItemSeparatorComponent={() => <View style={{ width: 12 }} />}
-          contentContainerStyle={{ paddingHorizontal: 10 }}
-          renderItem={({ item }) => {
-            // ← Validación nueva en render: Verifica props antes de pasar a Producto
-            if (!validarProducto(item)) {
-              console.warn(`Producto omitido en render: ${item.id}`);
-              return null;  // ← No renderiza si inválido
-            }
-            const imageSource = typeof item.imagen === 'string' && item.imagen.startsWith('data:image/')
-              ? { uri: item.imagen }
-              : typeof item.imagen === 'string' && item.imagen.startsWith('http')
-              ? { uri: item.imagen }
-              : { uri: item.imagen || 'https://via.placeholder.com/150?text=No+Imagen' };
-            
-            return (
-              <Producto
-                image={imageSource}
-                precio={item.precio?.toString() || '0'}
-                descripcion={item.descripcion?.trim() || item.nombre?.trim() || 'Sin descripción'}
-                hora_mes={item.hora_mes?.trim() || 'Reciente'}
-                fondoColor={item.fondoColor || 'rgb(125, 183, 219)'}
-                cora={item.cora || 'heart'}
-                oferta={item.oferta}
-                onPress={() => navigation.navigate('DetalleProducto', { 
-                  producto: {
-                    ...item,
-                    image: imageSource,
-                    descripcion: item.descripcion?.trim() || item.nombre?.trim() || 'Sin descripción',
-                    precio: item.precio?.toString() || '0',
-                    rating: item.rating || 4.5,
-                  }
-                })}
-              />
-            );
-          }}
-        />
+      <Text style={styles.produc_dest}>Todos los productos</Text>
 
-        <Text style={styles.titulo}>Consigue los equipos más destacados</Text>
-        <FlatList
-          data={productosFiltrados}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          keyExtractor={(item) => item.id.toString()}
-          ItemSeparatorComponent={() => <View style={{ width: 12 }} />}
-          contentContainerStyle={{ paddingHorizontal: 10 }}
-          renderItem={({ item }) => {
-            if (!validarProducto(item)) {
-              console.warn(`Producto omitido en render: ${item.id}`);
-              return null;
-            }
-            return (
-              <TouchableOpacity onPress={() => navigation.navigate('DetalleProducto', { producto: item })}>
-                <Producto
-                  image={item.imagen || 'https://via.placeholder.com/150?text=No+Imagen'}
-                  precio={item.precio?.toString() || '0'}
-                  descripcion={item.descripcion?.trim() || item.nombre?.trim() || 'Sin descripción'}
-                  hora_mes={item.hora_mes?.trim() || 'Reciente'}
-                  fondoColor={item.fondoColor || 'rgb(125, 183, 219)'}
-                  cora={item.cora || 'heart'}
-                  oferta={item.oferta}
-                />
-              </TouchableOpacity>
-            );
-          }}
-        />
+      <ScrollView
+        style={styles.scrollContainer}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.contentContainer}
+      >
+        {productosFiltrados.length === 0 ? (
+          <Text style={styles.sinProductos}>No se encontraron productos</Text>
+        ) : (
+          <View style={styles.grid}>
+            {productosFiltrados.map((item) => {
+              const imageSource =
+                item.imagen?.startsWith('data:image/') || item.imagen?.startsWith('http')
+                  ? { uri: item.imagen }
+                  : { uri: 'https://via.placeholder.com/150?text=No+Imagen' };
 
-        <Text style={styles.titulo}>Lo más popular esta semana</Text>
-        <FlatList
-          data={productosFiltrados}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          keyExtractor={(item) => item.id.toString()}
-          ItemSeparatorComponent={() => <View style={{ width: 12 }} />}
-          contentContainerStyle={{ paddingHorizontal: 10 }}
-          renderItem={({ item }) => {
-            if (!validarProducto(item)) {
-              console.warn(`Producto omitido en render: ${item.id}`);
-              return null;
-            }
-            return (
-              <TouchableOpacity onPress={() => navigation.navigate('DetalleProducto', { producto: item })}>
-                <Producto
-                  image={item.imagen || 'https://via.placeholder.com/150?text=No+Imagen'}
-                  precio={item.precio?.toString() || '0'}
-                  descripcion={item.descripcion?.trim() || item.nombre?.trim() || 'Sin descripción'}
-                  hora_mes={item.hora_mes?.trim() || 'Reciente'}
-                  fondoColor={item.fondoColor || 'rgb(125, 183, 219)'}
-                  cora={item.cora || 'heart'}
-                  oferta={item.oferta}
-                />
-              </TouchableOpacity>
-            );
-          }}
-        />
-
-        <Text style={styles.titulo}>Novedades para el hogar</Text>
-        <FlatList
-          data={productosFiltrados}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          keyExtractor={(item) => item.id.toString()}
-          ItemSeparatorComponent={() => <View style={{ width: 12 }} />}
-          contentContainerStyle={{ paddingHorizontal: 10 }}
-          renderItem={({ item }) => {
-            if (!validarProducto(item)) {
-              console.warn(`Producto omitido en render: ${item.id}`);
-              return null;
-            }
-            return (
-              <TouchableOpacity onPress={() => navigation.navigate('DetalleProducto', { producto: item })}>
-                <Producto
-                  image={item.imagen || 'https://via.placeholder.com/150?text=No+Imagen'}
-                  precio={item.precio?.toString() || '0'}
-                  descripcion={item.descripcion?.trim() || item.nombre?.trim() || 'Sin descripción'}
-                  hora_mes={item.hora_mes?.trim() || 'Reciente'}
-                  fondoColor={item.fondoColor || 'rgb(125, 183, 219)'}
-                  cora={item.cora || 'heart'}
-                  oferta={item.oferta}
-                />
-              </TouchableOpacity>
-            );
-          }}
-        />
+              return (
+                <View key={item.id} style={styles.tarjeta}>
+                  <Producto
+                    image={imageSource}
+                    precio={parseFloat(item.precio).toFixed(2)}
+                    descripcion={item.nombre.trim()}
+                    hora_mes={item.stock ? `Stock: ${item.stock}` : 'Disponible'}
+                    explora=""
+                    fondoColor="#f8f9fa"
+                    cora="heart"
+                    isFavorito={!!favoritos[item.id]}
+                    onFavoritoPress={() => toggleFavorito(item.id)}
+                    onPress={() =>
+                      navigation.navigate('DetalleProducto', {
+                        producto: {
+                          ...item,
+                          image: imageSource,
+                          descripcion: item.nombre.trim(),
+                          precio: parseFloat(item.precio),
+                          rating: item.rating || 4.5,
+                        },
+                      })
+                    }
+                  />
+                </View>
+              );
+            })}
+          </View>
+        )}
       </ScrollView>
     </View>
   );
@@ -270,55 +156,80 @@ export default function vistaProductos() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'rgb(197, 230, 232)',
+    backgroundColor: '#E9F3F5',
     alignItems: 'center',
-    justifyContent: 'flex-start',
+    paddingTop: 40,
   },
   contenedor_buscador: {
+    width: '90%',
     alignItems: 'center',
-    marginBottom: 20,
-    marginTop: -30,
+    marginBottom: 10,
   },
   buscador: {
-    width: '90%',
+    width: '100%',
     height: 50,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgb(245, 245, 255)',
-    marginTop: 60,
-    padding: 15,
-    borderRadius: 10,
+    backgroundColor: '#fff',
+    paddingHorizontal: 15,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 3,
   },
   textoBuscador: {
     flex: 1,
     height: 45,
-    color: '#529c6bff',
-    fontSize: 15,
-    paddingLeft: 15,
+    color: '#333',
+    fontSize: 16,
+    paddingLeft: 10,
   },
-  titulo: {
-    marginLeft: 19,
-    fontSize: 19,
-    marginTop: 29,
-    marginBottom: 10,
+  produc_dest: {
+    fontSize: 22,
+    fontWeight: '600',
+    color: '#2C3E50',
+    marginVertical: 10,
+    alignSelf: 'flex-start',
+    marginLeft: '6%',
   },
-  productosContainer: {
-    flex: 1,
+  scrollContainer: {
     width: '100%',
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    flex: 1,
+  },
+  contentContainer: {
     paddingBottom: 20,
   },
-  // cargar
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'flex-start', // ← Alinea a la izquierda
+    paddingHorizontal: 15,
+  },
+  tarjeta: {
+    width: CARD_WIDTH,
+    marginRight: 15,
+    marginBottom: 16,
+    overflow: 'hidden',
+  },
+  // Ajuste para el último de cada fila
+  sinProductos: {
+    textAlign: 'center',
+    fontSize: 16,
+    color: '#666',
+    marginTop: 40,
+    fontStyle: 'italic',
+    width: '100%',
+  },
   loadingContainer: {
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#E9F3F5',
+    flex: 1,
   },
   loadingText: {
     marginTop: 10,
     fontSize: 16,
-    color: '#529c6bff',
-    textAlign: 'center',
+    color: '#3498db',
   },
 });

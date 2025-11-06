@@ -13,6 +13,7 @@ import {
   ActivityIndicator,
   ScrollView,
   Dimensions,
+  getDoc,
 } from 'react-native';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useNavigation } from '@react-navigation/native';
