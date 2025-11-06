@@ -26,6 +26,7 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import CategoriaSeleccionada from './src/Screens/CategoriaSeleccionada.js';
 import ProductChart from './src/Screens/Reportes.js';
 import Direcciones from './src/Screens/Direcciones.js';
+import RegistrarUsuarios from './src/Screens/RegistrarUsuarios.js';
 
 // Declaración de navegadores
 const Tab = createBottomTabNavigator();
@@ -205,6 +206,7 @@ function StackLogin() {
             <StackNav.Screen name="MyTabsCliente" component={MyTabsCliente} />
             <StackNav.Screen name="MyTabsAdmon" component={MyTabsAdmon} />
             <StackNav.Screen name="MyTabsSuperAdmon" component={MyTabsSuperAdmon} />
+            <StackNav.Screen name="RegistrarUsuarios" component={RegistrarUsuarios} />
         </StackNav.Navigator>
     );
 }

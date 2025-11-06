@@ -121,7 +121,10 @@ const LoginTienda = ({ onLoginSuccess }) => {
             <Text style={styles.textoBoton}>Iniciar sesion</Text>
           )}
         </TouchableOpacity>
-        <Text style={styles.textoCrearCuenta}>Si no tienes una cuenta, ¡crea una!</Text>
+        <Text style={styles.textoCrearCuenta} onPress={() => navigation.navigate('RegistrarUsuarios')}
+        >
+          Si no tienes una cuenta, ¡crea una!
+        </Text>
 
         <View style={styles.handle1} />
         <Text style={styles.textoSeguirCon}>O seguin con</Text>
@@ -144,7 +147,7 @@ const LoginTienda = ({ onLoginSuccess }) => {
         >
           Continuar sin cuenta
         </Text>
-        <Text style={styles.textoServiciosCuenta}>Al crear una cuenta, acepto los Términos y la Política de privacidad.</Text>
+       
       </Animated.View>
     </View>
 

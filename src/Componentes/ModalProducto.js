@@ -108,8 +108,6 @@ const ModalProducto = ({
                                 <ModalHeader />
 
                                 <ScrollView>
-
-
                                     <TouchableOpacity style={styles.registrarProducto} onPress={() => setModalVisibleRegistro(true)}>
                                         <Text>Registrar productos</Text>
                                     </TouchableOpacity>

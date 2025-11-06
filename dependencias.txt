@@ -1,3 +1,5 @@
 npx expo install expo-notifications
 
 npm i react-native-chart-kit
+
+npm install @react-native-picker/picker
