@@ -80,6 +80,7 @@ export default function Tienda() {
 
 const styles = StyleSheet.create({
     container: {
+         backgroundColor:"#c6cfccff",
         flex: 1,
         padding: 20,
     },

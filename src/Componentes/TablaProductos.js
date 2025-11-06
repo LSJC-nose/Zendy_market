@@ -12,7 +12,8 @@ const TablaProductos = ({ productos, eliminarProducto, editarProducto }) => {
                     {/* Encabezado */}
                     <View style={[styles.fila, styles.encabezado]}>
                         <Text style={[styles.celda, styles.textoEncabezado, styles.colNombre]}>Nombre</Text>
-                        <Text style={[styles.celda, styles.textoEncabezado, styles.colPrecio]}>Precio</Text>
+                        <Text style={[styles.celda, styles.textoEncabezado, styles.colPrecio]}>Venta</Text>
+                        <Text style={[styles.celda, styles.textoEncabezado, styles.colPrecio]}>Compra</Text>
                         <Text style={[styles.celda, styles.textoEncabezado, styles.colStock]}>Stock</Text>
                         <Text style={[styles.celda, styles.textoEncabezado, styles.colCategoria]}>Categoría</Text>
                         <Text style={[styles.celda, styles.textoEncabezado, styles.colImagen]}>Imagen</Text>
@@ -25,6 +26,7 @@ const TablaProductos = ({ productos, eliminarProducto, editarProducto }) => {
                             <View key={item.id} style={styles.fila}>
                                 <Text style={[styles.celda, styles.colNombre]}>{item.nombre}</Text>
                                 <Text style={[styles.celda, styles.colPrecio]}>${item.precio}</Text>
+                                <Text style={[styles.celda, styles.colPrecio]}>${item.precioCompra}</Text>
                                 <Text style={[styles.celda, styles.colStock]}>{item.stock}</Text>
                                 <Text style={[styles.celda, styles.colCategoria]}>{item.Categoria}</Text>
                                 <View style={[styles.celda, styles.colImagen]}>
@@ -60,7 +62,7 @@ const TablaProductos = ({ productos, eliminarProducto, editarProducto }) => {
 
 const styles = StyleSheet.create({
     container: {
-        
+
         flex: 1,
         backgroundColor: "#ffffff",
         padding: 20

@@ -156,26 +156,26 @@ export default function Home() {
 
         <View style={styles.contenedorCategoria}>
           {categoriasFiltradas.length > 0 ? (
-            
+
             <FlatList
-  data={categoriasFiltradas}
-  horizontal
-  keyExtractor={(item) => item.id}
-  renderItem={({ item }) => (
-
-    
-    <TouchableOpacity onPress={() => navigation.navigate('CategoriaSeleccionada', {
-  nombre: item.nombre  // ← SOLO EL NOMBRE
-})}>
-  <CategoriaItem imagen={item.foto} texto={item.nombre} />
-</TouchableOpacity>
+              data={categoriasFiltradas}
+              horizontal
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
 
 
+                <TouchableOpacity onPress={() => navigation.navigate('CategoriaSeleccionada', {
+                  nombre: item.nombre  // ← SOLO EL NOMBRE
+                })}>
+                  <CategoriaItem imagen={item.foto} texto={item.nombre} />
+                </TouchableOpacity>
 
-  )}
-  showsHorizontalScrollIndicator={false}
-  contentContainerStyle={styles.categoriasLista}
-/>
+
+
+              )}
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.categoriasLista}
+            />
           ) : (
             <Text style={styles.sinProductos}>
               {loading ? 'Cargando categorías...' : 'No hay categorías disponibles'}
@@ -210,7 +210,7 @@ export default function Home() {
                     // nombreTienda={obtenerNombreTienda(item.tiendaId)}
                     isFavorito={!!favoritos[item.id]}
                     onFavoritoPress={() => toggleFavorito(item.id)}
-                    onPress={() => navigation.navigate('DetalleProducto', { 
+                    onPress={() => navigation.navigate('DetalleProducto', {
                       producto: {
                         ...item,
                         image: { uri: item.imagen },

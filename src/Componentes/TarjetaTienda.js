@@ -12,6 +12,10 @@ import { getDocs, collection, addDoc, updateDoc, deleteDoc, doc } from 'firebase
 import ModalEditarTienda from './BotonActualizarTienda';
 import FormularioRegistrarProducto from './FormularioRegistrarProducto';
 import ModalSeleccionarCategoria from './ModalSeleccionarCategoria';
+import ModalProducto from './ModalProducto';
+import ModalRegistrarTienda from './ModalRegistrarTienda';
+import Entypo from '@expo/vector-icons/Entypo';
+
 
 const TarjetaTienda = ({ tienda, eliminarTienda }) => {
     const [modalVisible, setModalVisible] = useState(false);
@@ -23,6 +27,7 @@ const TarjetaTienda = ({ tienda, eliminarTienda }) => {
     const [productoForm, setProductoForm] = useState({
         nombre: '',
         precio: '',
+        precioCompra: '',
         stock: '',
         Categoria: '',
         foto: ''
@@ -89,8 +94,8 @@ const TarjetaTienda = ({ tienda, eliminarTienda }) => {
     };
 
     const guardarProducto = async () => {
-        const { nombre, precio, stock, Categoria, foto } = productoForm;
-        if (!nombre || isNaN(precio) || isNaN(stock) || !Categoria || !foto || !tiendaSeleccionada?.id) {
+        const { nombre, precio, precioCompra, stock, Categoria, foto } = productoForm;
+        if (!nombre || isNaN(precio) || isNaN(precioCompra) || isNaN(stock) || !Categoria || !foto || !tiendaSeleccionada?.id) {
             Alert.alert('Error', 'Por favor, complete todos los campos con valores válidos.');
             return;
         }
@@ -99,13 +104,14 @@ const TarjetaTienda = ({ tienda, eliminarTienda }) => {
             await addDoc(collection(db, 'productos'), {
                 nombre,
                 precio: parseFloat(precio),
+                precioCompra: parseFloat(precioCompra),
                 stock: parseFloat(stock),
                 Categoria,
                 imagen: foto,
                 tiendaId: tiendaSeleccionada.id
             });
             cargarDatos();
-            setProductoForm({ nombre: '', precio: '', stock: '', Categoria: '', foto: '' });
+            setProductoForm({ nombre: '', precio: '', precioCompra: '', stock: '', Categoria: '', foto: '' });
         } catch (error) {
             console.error('Error al registrar producto:', error);
             Alert.alert('Error', 'No se pudo registrar el producto.');
@@ -115,8 +121,8 @@ const TarjetaTienda = ({ tienda, eliminarTienda }) => {
     };
 
     const actualizarProducto = async () => {
-        const { nombre, precio, stock, Categoria, foto } = productoForm;
-        if (!nombre || isNaN(precio) || isNaN(stock) || !Categoria || !foto) {
+        const { nombre, precio, precioCompra, stock, Categoria, foto } = productoForm;
+        if (!nombre || isNaN(precio) || isNaN(precioCompra) || isNaN(stock) || !Categoria || !foto) {
             Alert.alert('Error', 'Por favor, complete todos los campos con valores válidos.');
             return;
         }
@@ -125,11 +131,12 @@ const TarjetaTienda = ({ tienda, eliminarTienda }) => {
             await updateDoc(doc(db, 'productos', productoId), {
                 nombre,
                 precio: parseFloat(precio),
+                precioCompra: parseFloat(precioCompra),
                 stock: parseFloat(stock),
                 Categoria,
                 imagen: foto
             });
-            setProductoForm({ nombre: '', precio: '', stock: '', Categoria: '', foto: '' });
+            setProductoForm({ nombre: '', precio: '', precioCompra: '', stock: '', Categoria: '', foto: '' });
             setModoEdicion(false);
             setProductoId(null);
             cargarDatos();
@@ -145,6 +152,7 @@ const TarjetaTienda = ({ tienda, eliminarTienda }) => {
         setProductoForm({
             nombre: producto.nombre,
             precio: producto.precio.toString(),
+            precioCompra: producto.precioCompra ? producto.precioCompra.toString() : '',
             stock: producto.stock.toString(),
             Categoria: producto.Categoria,
             foto: producto.imagen
@@ -154,7 +162,7 @@ const TarjetaTienda = ({ tienda, eliminarTienda }) => {
     };
 
     const limpiarFormulario = () => {
-        setProductoForm({ nombre: '', precio: '', stock: '', Categoria: '', foto: '' });
+        setProductoForm({ nombre: '', precio: '', precioCompra: '', stock: '', Categoria: '', foto: '' });
         setModoEdicion(false);
         setProductoId(null);
     };
@@ -207,16 +215,7 @@ const TarjetaTienda = ({ tienda, eliminarTienda }) => {
     };
 
 
-    const ModalHeader = () => (
-        <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>
-                {modoEdicion ? 'Actualizar Producto' : 'Registro de Productos'} en {tiendaSeleccionada?.nombre ?? 'Tienda'}
-            </Text>
-            <TouchableOpacity onPress={() => { setModalVisible(false); limpiarFormulario(); }} style={styles.modalCloseButton}>
-                <AntDesign name="close" size={24} color="black" />
-            </TouchableOpacity>
-        </View>
-    );
+
 
     return (
         <View style={styles.container}>
@@ -242,45 +241,25 @@ const TarjetaTienda = ({ tienda, eliminarTienda }) => {
                 )}
             </ScrollView>
 
-            <Modal
+            <ModalProducto
                 visible={modalVisible}
-                animationType="slide"
-                transparent={true}
-                onRequestClose={() => setModalVisible(false)}
-            >
-                <KeyboardAvoidingView
-                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                    style={styles.modalContainer}
-                >
-                    <View style={styles.modalContent}>
-                        {isLoading && <ActivityIndicator size="large" color="#47acb9" style={styles.loadingIndicator} />}
-                        <ScrollView contentContainerStyle={styles.modalScroll}>
-                            {tiendaSeleccionada && (
-                                <>
-                                    <ModalHeader />
-                                    <FormularioRegistrarProducto
-                                        styles={styles}
-                                        productoForm={productoForm}
-                                        manejoCambio={manejoCambio}
-                                        abrirModalCategorias={abrirModalCategorias}
-                                        seleccionarImagen={seleccionarImagen}
-                                        modoEdicion={modoEdicion}
-                                        onSubmit={modoEdicion ? actualizarProducto : guardarProducto}
-                                    />
-                                    <ScrollView>
-                                        <TablaProductos
-                                            productos={productos}
-                                            editarProducto={iniciarEdicionProducto}
-                                            eliminarProducto={eliminarProducto}
-                                        />
-                                    </ScrollView>
-                                </>
-                            )}
-                        </ScrollView>
-                    </View>
-                </KeyboardAvoidingView>
-            </Modal>
-
+                 setModalVisible={setModalVisible}
+                onClose={() => { setModalVisible(false); limpiarFormulario(); }}
+                styles={styles}
+                isLoading={isLoading}
+                tiendaSeleccionada={tiendaSeleccionada}
+                productoForm={productoForm}
+                manejoCambio={manejoCambio}
+                abrirModalCategorias={abrirModalCategorias}
+                seleccionarImagen={seleccionarImagen}
+                modoEdicion={modoEdicion}
+                onSubmit={modoEdicion ? actualizarProducto : guardarProducto}
+                productos={productos}
+                editarProducto={iniciarEdicionProducto}
+                eliminarProducto={eliminarProducto}
+            />
+           
+                    
             <ModalSeleccionarCategoria
                 visible={categoriaModalVisible}
                 categorias={categorias}
@@ -334,7 +313,7 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'stretch',
-       
+
     },
     modalContent: {
         backgroundColor: 'white',
@@ -415,7 +394,7 @@ const styles = StyleSheet.create({
         marginTop: 4,
         fontSize: 20,
     },
-    tarjeta_input:{
+    tarjeta_input: {
         backgroundColor: '#f9fffe',
         borderRadius: 14,
         padding: 12,

@@ -22,9 +22,16 @@ const FormularioRegistrarProducto = ({
                 />
                 <TextInput
                     style={styles.input}
-                    placeholder="Precio"
+                    placeholder="Precio venta"
                     value={productoForm.precio}
                     onChangeText={(precio) => manejoCambio('precio', precio)}
+                    keyboardType="numeric"
+                />
+                 <TextInput
+                    style={styles.input}
+                    placeholder="Precio compra"
+                    value={productoForm.precioCompra}
+                    onChangeText={(precioCompra) => manejoCambio('precioCompra', precioCompra)}
                     keyboardType="numeric"
                 />
                 <TextInput
