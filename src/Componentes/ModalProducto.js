@@ -35,9 +35,12 @@ const ModalProducto = ({
     onSubmit,
     productos,
     editarProducto,
-    eliminarProducto
+    eliminarProducto,
+    // control del modal de registro (lo maneja el padre)
+    modalRegistroVisible,
+    setModalVisibleRegistro
 }) => {
-    const [modalRegistroVisible, setModalVisibleRegistro] = useState(false);
+    // El estado del modal de registro será controlado por el padre (TarjetaTienda)
     const [tiendas, setTiendas] = useState([]);
     const { producto } = useState([]);
     const route = useRoute();
@@ -94,21 +97,25 @@ const ModalProducto = ({
                                 <TouchableOpacity onPress={onClose} style={styles.modalCloseButton}>
                                     <AntDesign name="close" size={24} color="black" />
                                 </TouchableOpacity>
-                                <View style={styles.tiendaInfoContainer}>
-
-                                    {tiendaSeleccionada?.foto && (
-                                        <Image source={{ uri: tiendaSeleccionada.foto }} style={styles.tiendaImagen} />
+                                <View style={localStyles.tiendaInfoContainer}>
+                                    {tiendaSeleccionada?(
+                                        <Image
+                                            source={{ uri: tiendaSeleccionada.foto }}
+                                            style={localStyles.tiendaImagen}
+                                        />
+                                    ) : (
+                                        <Text style={{ color: '#666' }}>Sin imagen</Text>
                                     )}
 
-                                    <Text style={styles.tiendaNombre}>
-                                        {tiendaSeleccionada.nombre}
+                                    <Text style={localStyles.tiendaNombre}>
+                                        {tiendaSeleccionada?.nombre}
                                     </Text>
                                 </View>
 
                                 <ModalHeader />
 
                                 <ScrollView>
-                                    <TouchableOpacity style={styles.registrarProducto} onPress={() => setModalVisibleRegistro(true)}>
+                                    <TouchableOpacity style={localStyles.registrarProducto} onPress={() => setModalVisibleRegistro(true)}>
                                         <Text>Registrar productos</Text>
                                     </TouchableOpacity>
 
@@ -144,29 +151,25 @@ const ModalProducto = ({
     );
 };
 
-const styles = StyleSheet.create({
-    imagen: {
-        width: 72,
-        height: 72,
-        borderRadius: 36,
-        marginRight: 12
-    },
+// Estilos locales que sólo usa este componente (evita colisión con la prop `styles`)
+const localStyles = StyleSheet.create({
+   
     tiendaInfoContainer: {
-        alignItems: 'center',
+        marginTop:-10,
+       alignItems: 'center',
         marginBottom: 16,
     },
     tiendaImagen: {
-        width: 100,
-        height: 100,
+        width: 70,
+        height: 70,
         borderRadius: 50,
         marginBottom: 8,
-        resizeMode: 'cover',
-
     },
     tiendaNombre: {
+        alignSelf:"center",
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#333',
+        color: '#1d1a1aff',
     },
     modalContainer: {
         flex: 1,
@@ -200,9 +203,10 @@ const styles = StyleSheet.create({
         marginVertical: 20,
     },
     registrarProducto: {
-        width: 100,
+        alignSelf: 'center',
+        width: 150,
         padding: 10,
-        backgroundColor: '#e2fae0ff',
+        backgroundColor: '#6cadaaff',
         borderRadius: 8,
         alignItems: 'center',
     },

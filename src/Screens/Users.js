@@ -10,15 +10,17 @@ import {
   Image,
   TouchableWithoutFeedback,
   Alert,
+  Button,
+  ScrollView,
 } from 'react-native';
-import { Button } from 'react-native';
 import Foundation from '@expo/vector-icons/Foundation';
 import { useNavigation } from '@react-navigation/native';
 import { db } from "../database/firebaseConfig.js";
 import { collection, getDocs, getDoc, doc, deleteDoc } from "firebase/firestore";
-import { getAuth, onAuthStateChanged, deleteUser, signOut } from 'firebase/auth';
+import { getAuth, onAuthStateChanged, deleteUser, signOut, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import AntDesign from '@expo/vector-icons/AntDesign';
+// ScrollView se importa desde 'react-native' arriba
 const Users = () => {
   const [nombreActual, setNombreActual] = useState(null);
   const [isAnonymous, setIsAnonymous] = useState(false);
@@ -31,6 +33,8 @@ const Users = () => {
 
   const [modalVisible, setModalVisible] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showReauthModal, setShowReauthModal] = useState(false);
+  const [reauthPassword, setReauthPassword] = useState('');
 
   const handleLogout = () => {
     Alert.alert(
@@ -54,21 +58,6 @@ const Users = () => {
         },
       ]
     );
-  };
-
-  const cargarDatos = async () => {
-    try {
-      const querySnapshot = await getDocs(collection(db, "usuario"));
-      const data = querySnapshot.docs.map((d) => ({
-        id: d.id,
-        ...d.data(),
-      }));
-      setUsuarios(data);
-      // Si quieres establecer el nombre del usuario actual automáticamente (ejemplo):
-      // if (data.length > 0) setNombreUsuarioActual(data[0].nombre);
-    } catch (error) {
-      console.error("Error al obtener documentos:", error);
-    }
   };
 
   useEffect(() => {
@@ -125,64 +114,75 @@ const Users = () => {
               return;
             }
 
+            // Intentar eliminar la cuenta de Authentication primero
             try {
-              // Eliminar documento de Firestore primero
-              await deleteDoc(doc(db, 'usuario', user.uid));
-
-              // Intentar eliminar la cuenta de Authentication
-              try {
-                await deleteUser(user);
-              } catch (authErr) {
-                console.warn('No se pudo eliminar el usuario de Auth:', authErr);
-                // Si requiere reautenticación, informar al usuario
-                if (authErr.code === 'auth/requires-recent-login') {
-                  Alert.alert(
-                    'Reautenticación requerida',
-                    'Por seguridad, vuelve a iniciar sesión antes de eliminar tu cuenta.',
-                    [
-                      {
-                        text: 'Aceptar',
-                        onPress: async () => {
-                          // Forzar cierre de sesión para que el usuario pueda volver a autenticarse
-                          try {
-                            await signOut(auth);
-                          } catch (e) {
-                            console.error('Error al cerrar sesión tras requerir reauth:', e);
-                          }
-                          navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
-                        },
-                      },
-                    ]
-                  );
+              await deleteUser(user);
+            } catch (authErr) {
+              // Si requiere reautenticación, mostrar modal para pedir contraseña (si es usuario con email/password)
+              if (authErr && authErr.code === 'auth/requires-recent-login') {
+                const hasPasswordProvider = (user.providerData || []).some(p => p.providerId === 'password');
+                if (hasPasswordProvider) {
+                  // Abrir modal para reautenticación
+                  setShowReauthModal(true);
+                  setLoading(false);
+                  return;
+                } else {
+                  // Si no es password provider (Google, Facebook...), pedir al usuario que inicie sesión con su proveedor
+                  Alert.alert('Reautenticación requerida', 'Por seguridad, vuelve a iniciar sesión con tu proveedor (Google/Facebook) y luego elimina la cuenta.');
+                  try {
+                    await signOut(auth);
+                  } catch (e) {
+                    // ignorar
+                  }
+                  navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+                  setLoading(false);
                   return;
                 }
               }
 
-              // Si llegamos aquí, hemos eliminado (o al menos el documento). Cerrar/navegar a login.
-              try {
-                await signOut(auth);
-              } catch (e) {
-                // si ya se eliminó el usuario, signOut puede fallar; ignoramos
-              }
-
-              navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
-            } catch (error) {
-              console.error('Error al eliminar cuenta:', error);
-              Alert.alert('Error', 'Ocurrió un error al eliminar la cuenta. Intenta nuevamente.');
-            } finally {
+              console.error('No se pudo eliminar el usuario de Auth:', authErr);
+              Alert.alert('Error', 'No se pudo eliminar la cuenta. Intenta nuevamente.');
               setLoading(false);
+              return;
             }
+
+            // Si la cuenta de Auth se eliminó correctamente, eliminar el documento en Firestore
+            try {
+              await deleteDoc(doc(db, 'usuario', user.uid));
+            } catch (errDoc) {
+              console.warn('No se pudo eliminar el documento de Firestore:', errDoc);
+              // continuar: la cuenta de Auth al menos fue eliminada
+            }
+
+            // Hacer signOut (puede fallar si ya se eliminó el usuario, lo ignoramos)
+            try {
+              await signOut(auth);
+            } catch (e) {
+              // ignorar
+            }
+
+            navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+            setLoading(false);
           },
         },
       ]
     );
   };
 
+  
+
   return (
     <View style={styles.container}>
 
-  <Text style={styles.textoBienvenida}>{isAnonymous ? ' ' : `"Hola": ${nombreActual ?? '"Inicializando"'}`}<AntDesign name="user" size={24} color="black" /></Text>
-
+      <View style={styles.contenedortextoBienvenida}>
+        <View>
+          <AntDesign style={styles.iconoUser} name="user" size={40} color="black" />
+          <Text style={styles.textoBienvenida}>
+            {isAnonymous ? ' ' : `'Bienvenido, ${nombreActual ?? 'Inicializando'}'`}
+          </Text>
+        </View>
+      </View>
+      <ScrollView>
       <View style={styles.contenedor1}>
         <Text style={styles.texto1}>Tu cuenta</Text>
       </View>
@@ -212,8 +212,7 @@ const Users = () => {
           </TouchableOpacity>
         )}
       </View>
-
-
+      </ScrollView>
     </View>
   );
 };
@@ -233,16 +232,17 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   contenedor1: {
-    width: '100%',
+    width: 380,
     height: 60,
     backgroundColor: 'white',
     borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
     marginVertical: 5,
+    
   },
   contenedor2: {
-    width: '100%',
+    width: 380,
     height: 190,
     backgroundColor: 'white',
     borderRadius: 10,
@@ -254,6 +254,17 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderRadius: 10,
     marginVertical: 5,
+  },
+  contenedortextoBienvenida: {
+    backgroundColor: 'rgba(142, 211, 228, 1)',
+    marginTop: -10,
+    elevation: 3,
+    width: '100%',
+    height: 160,
+    backgroundColor: 'white',
+    marginVertical: 5,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   texto1: {
     fontSize: 25,
@@ -323,7 +334,7 @@ const styles = StyleSheet.create({
     fontSize: 19,
     fontWeight: 'bold',
   },
-  EliminarCuentaButton: { 
+  EliminarCuentaButton: {
     alignSelf: 'center',
     width: '80%',
     backgroundColor: '#ff4444',
@@ -332,6 +343,11 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
     marginTop: 10,
+  },
+  iconoUser: {
+    marginTop: 45,
+    alignSelf: 'center',
+    marginBottom: 10,
   },
 });
 

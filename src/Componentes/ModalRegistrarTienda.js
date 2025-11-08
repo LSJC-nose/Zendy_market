@@ -99,9 +99,23 @@ const ModalRegistrarTienda = ({ modalVisible, setModalVisible, recargarTiendas }
                     admins: auth.currentUser ? [auth.currentUser.email] : [],
                 });
 
-                // Vincular tienda al usuario administrador actual (array tiendas)
+                // Vincular tienda al usuario administrador actual (usar UID cuando esté disponible)
                 const current = auth.currentUser;
-                if (current && current.email) {
+                if (current && current.uid) {
+                    try {
+                        const userRef = doc(db, 'usuario', current.uid);
+                        const userSnap = await getDoc(userRef);
+                        if (userSnap.exists()) {
+                            const userData = userSnap.data();
+                            const actuales = Array.isArray(userData.tiendas) ? userData.tiendas : [];
+                            const nuevas = actuales.includes(tiendaRef.id) ? actuales : [...actuales, tiendaRef.id];
+                            await updateDoc(userRef, { tiendas: nuevas });
+                        }
+                    } catch (err) {
+                        console.error('Error al vincular tienda por UID:', err);
+                    }
+                } else if (current && current.email) {
+                    // Fallback: buscar por correo si no existe UID (por compatibilidad)
                     const usuarioQuery = query(collection(db, 'usuario'), 
                     where('correo', '==', current.email));
                     const usuarioSnap = await getDocs(usuarioQuery);
@@ -118,12 +132,21 @@ const ModalRegistrarTienda = ({ modalVisible, setModalVisible, recargarTiendas }
                 // limpiar y cerrar
                 limpiarFormulario();
                 setModalVisible(false);
-                recargarTiendas();
+                // Pasar el usuario actual a la función de recarga para evitar condiciones de carrera
+                try {
+                    recargarTiendas(auth.currentUser);
+                } catch (err) {
+                    // Si algo falla, llamar sin parámetros (fallback)
+                    console.error('Error llamando recargarTiendas con usuario:', err);
+                    recargarTiendas();
+                }
                 setNuevaTienda({ nombre: "",  foto: "" });
                 Alert.alert('Éxito', 'Tienda agregada correctamente 🎉');
             } catch (error) {
                 console.error('Error al guardar tienda: ', error);
-                Alert.alert('Error', 'No se pudo guardar la tienda.');
+                // Mostrar el mensaje de error real para facilitar el diagnóstico
+                const mensaje = error && error.message ? error.message : 'No se pudo guardar la tienda.';
+                Alert.alert('Error', mensaje);
             }
         //}
     };

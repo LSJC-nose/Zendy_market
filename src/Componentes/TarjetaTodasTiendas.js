@@ -33,7 +33,7 @@ export default function TarjetaTodasTiendas({ tienda }) {
                             style={styles.btn_usuario}
                             onPress={() => { setSelectedTiendaId(item.id); setModalVisible(true); }}
                         >
-                            <Text>Propietario</Text>
+                            <Text> Ver Detalle</Text>
                         </TouchableOpacity>
                     </View>
                 ))}
@@ -86,7 +86,7 @@ const styles = StyleSheet.create({
         alignSelf: "center",
         alignItems: "center",
         backgroundColor: "#a6ece3ff",
-        width: 100,
+        width: 110,
         height: 45,
         shadowColor: '#d43434ff',
         shadowOffset: { width: 0, height: 2 },

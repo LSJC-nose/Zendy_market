@@ -1,4 +1,3 @@
-import {useState} from 'react';
 import { Modal, View, ScrollView, KeyboardAvoidingView, Platform, ActivityIndicator, TouchableOpacity, Text } from 'react-native';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import FormularioRegistrarProducto from './FormularioRegistrarProducto';
@@ -21,8 +20,6 @@ const ModalProducto = ({
     editarProducto,
     eliminarProducto
 }) => {
-    const [modalRegistroVisible, setModalVisibleRegistro] = useState(false);
-
     const ModalHeader = () => (
         <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>
@@ -52,7 +49,7 @@ const ModalProducto = ({
                             <>
                                 <ModalHeader />
                                 <FormularioRegistrarProducto
-                                  onClose={() => setModalVisibleRegistro(false)}
+                                    onClose={onClose}
                                     styles={styles}
                                     productoForm={productoForm}
                                     manejoCambio={manejoCambio}
@@ -62,8 +59,6 @@ const ModalProducto = ({
                                     onSubmit={onSubmit}
                                 />
                                 <ScrollView>
-
-                                
                                 </ScrollView>
                             </>
                         )}

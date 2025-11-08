@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, TextInput, Image, Button, TouchableOpacity } from 'react-native'
+import { StyleSheet, Text, View, TextInput, Image, Button, TouchableOpacity, Alert } from 'react-native'
 import { useState } from 'react';
 import { db } from "../database/firebaseConfig";
 import { collection, addDoc, setDoc, doc } from "firebase/firestore";
@@ -28,6 +28,7 @@ export default function FormularioRegistrarUsuarios({ cargarDatos }) {
                     nombre: nombre,
                     correo: correo,
                     rol: rol,
+                    tiendas: [], // inicializar array de tiendas para evitar problemas al filtrar más adelante
                     creadoEn: new Date()
                 });
 
@@ -36,13 +37,24 @@ export default function FormularioRegistrarUsuarios({ cargarDatos }) {
                 setCorreo("");
                 setContraseña("");
                 setRol("");
-                navigation.replace('MyTabsCliente');
+
+                if (rol === "Cliente")
+                    navigation.replace('MyTabsCliente');// ir a la nav del cliente
+
+                else if (rol === "Administrador")
+                    navigation.replace('Suscripcion');
+
             } catch (error) {
-                console.error("Error al registrar usuario:", error);
-                alert("Hubo un error al registrar el usuario. Verifica los datos o intenta más tarde.");
+                //console.error("Error al registrar usuario:", error);
+                // Mostrar alerta específica si el correo ya está en uso
+                if (error && error.code === 'auth/email-already-in-use') {
+                    Alert.alert('Correo en uso', 'El correo electrónico ya está registrado. Por favor usa otro correo o inicia sesión.');
+                } else {
+                    Alert.alert('Error', 'Hubo un error al registrar el usuario. Verifica los datos o intenta más tarde.');
+                }
             }
         } else {
-            alert("Por favor, complete todos los campos.");
+            Alert.alert('Campos incompletos', 'Por favor, complete todos los campos.');
         }
     };
 

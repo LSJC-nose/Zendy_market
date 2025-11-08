@@ -24,6 +24,7 @@ const TarjetaTienda = ({ tienda, eliminarTienda }) => {
     const [productos, setProductos] = useState([]);
     const [categorias, setCategorias] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
+    const [modalRegistroVisible, setModalVisibleRegistro] = useState(false);
     const [productoForm, setProductoForm] = useState({
         nombre: '',
         precio: '',
@@ -112,6 +113,7 @@ const TarjetaTienda = ({ tienda, eliminarTienda }) => {
             });
             cargarDatos();
             setProductoForm({ nombre: '', precio: '', precioCompra: '', stock: '', Categoria: '', foto: '' });
+            setModalVisibleRegistro(false);
         } catch (error) {
             console.error('Error al registrar producto:', error);
             Alert.alert('Error', 'No se pudo registrar el producto.');
@@ -140,6 +142,7 @@ const TarjetaTienda = ({ tienda, eliminarTienda }) => {
             setModoEdicion(false);
             setProductoId(null);
             cargarDatos();
+            setModalVisibleRegistro(false);
         } catch (error) {
             console.error('Error al actualizar producto:', error);
             Alert.alert('Error', 'No se pudo actualizar el producto.');
@@ -159,6 +162,8 @@ const TarjetaTienda = ({ tienda, eliminarTienda }) => {
         });
         setProductoId(producto.id);
         setModoEdicion(true);
+        // Abrir el modal de registro/actualización de producto
+        setModalVisibleRegistro(true);
     };
 
     const limpiarFormulario = () => {
@@ -202,20 +207,14 @@ const TarjetaTienda = ({ tienda, eliminarTienda }) => {
     };
 
     const gradientes = [
-        ['#dcf1f1', '#B5FFFC'],
-        ['#d3f0ce', '#a8e0d9'],
-        ['#c5e9ebff', '#d3f3f0'],
-        ['#c6d6f0ff', '#C2E9FB'],
-        ['#ddd8f3', '#ebf3de']
+        ['#dbf7f7ff', '#B5FFFC'],
+       
     ];
 
     const abrirModal = (item) => {
         setTiendaSeleccionada(item);
         setModalVisible(true);
     };
-
-
-
 
     return (
         <View style={styles.container}>
@@ -257,6 +256,8 @@ const TarjetaTienda = ({ tienda, eliminarTienda }) => {
                 productos={productos}
                 editarProducto={iniciarEdicionProducto}
                 eliminarProducto={eliminarProducto}
+                modalRegistroVisible={modalRegistroVisible}
+                setModalVisibleRegistro={setModalVisibleRegistro}
             />
            
                     
