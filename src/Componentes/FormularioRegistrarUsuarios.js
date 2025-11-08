@@ -1,8 +1,10 @@
 import { StyleSheet, Text, View, TextInput, Image, Button, TouchableOpacity } from 'react-native'
 import { useState } from 'react';
 import { db } from "../database/firebaseConfig";
-import { collection, addDoc } from "firebase/firestore";
+import { collection, addDoc, setDoc, doc } from "firebase/firestore";
 import { Picker } from '@react-native-picker/picker';
+import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
+import { useNavigation } from '@react-navigation/native';
 
 
 export default function FormularioRegistrarUsuarios({ cargarDatos }) {
@@ -10,33 +12,45 @@ export default function FormularioRegistrarUsuarios({ cargarDatos }) {
     const [correo, setCorreo] = useState("");
     const [contraseña, setContraseña] = useState("");
     const [rol, setRol] = useState("");
+    const navigation = useNavigation();
+
+    const auth = getAuth();
 
     const guardarUsuarios = async () => {
         if (nombre && correo && contraseña && rol) {
             try {
-                await addDoc(collection(db, "usuario"), {
+
+                const userCredential = await createUserWithEmailAndPassword(auth, correo, contraseña);
+                const user = userCredential.user;
+
+                await setDoc(doc(collection(db, "usuario"), user.uid), {
+                    uid: user.uid,
                     nombre: nombre,
                     correo: correo,
-                    contraseña: contraseña,
-                    rol: rol
+                    rol: rol,
+                    creadoEn: new Date()
                 });
+
+                // Limpiar campos
                 setNombre("");
                 setCorreo("");
                 setContraseña("");
                 setRol("");
-                cargarDatos(); // Volver a cargar la lista
+                navigation.replace('MyTabsCliente');
             } catch (error) {
                 console.error("Error al registrar usuario:", error);
+                alert("Hubo un error al registrar el usuario. Verifica los datos o intenta más tarde.");
             }
         } else {
             alert("Por favor, complete todos los campos.");
         }
     };
 
+
     const rolesDisponibles = [
         { valor: 'Administrador', label: 'Administrador' },
         { valor: 'Cliente', label: 'Cliente' },
-        
+
     ];
 
     return (
@@ -115,8 +129,8 @@ const styles = StyleSheet.create({
     },
     input: {
         borderRadius: 20,
-        borderWidth: 1,
-        borderColor: "#10b9c5ff",
+        borderBottomWidth: 2,
+        borderColor: 'rgba(34, 186, 197, 1)',
         padding: 10,
         marginBottom: 10
     },

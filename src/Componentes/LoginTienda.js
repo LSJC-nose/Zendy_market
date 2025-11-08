@@ -5,6 +5,7 @@ import {
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import { ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import appFirebase from '../database/firebaseConfig';
 import { collection, getFirestore, getDocs, query, where } from 'firebase/firestore';
 import { signInWithEmailAndPassword } from "firebase/auth";
@@ -28,6 +29,13 @@ const LoginTienda = ({ onLoginSuccess }) => {
       //autenticación del usuario
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
+
+      // Si inició sesión correctamente, asegurarnos de marcar que NO es modo anónimo
+      try {
+        await AsyncStorage.setItem('isAnonymous', 'false');
+      } catch (e) {
+        console.error('Error almacenando isAnonymous:', e);
+      }
 
       //Consulta a la colección usuario
       const q = query(
@@ -54,6 +62,17 @@ const LoginTienda = ({ onLoginSuccess }) => {
     } catch (error) {
       Alert.alert("Error", "Correo o contraseña incorrectos");
     }
+  };
+
+  const handleContinueWithoutAccount = async () => {
+    try {
+      // Marcar modo anónimo
+      await AsyncStorage.setItem('isAnonymous', 'true');
+    } catch (e) {
+      console.error('Error guardando modo anónimo:', e);
+    }
+    // Navegar a la vista de cliente en modo anónimo
+    navigation.navigate('MyTabsCliente', { anonymous: true });
   };
 
 
@@ -143,7 +162,7 @@ const LoginTienda = ({ onLoginSuccess }) => {
             <FontAwesome5 name="apple" size={28} color="black" />
           </View>
         </View>
-        <Text style={styles.sincuenta} onPress={() => navigation.navigate('MyTabsCliente')}
+        <Text style={styles.sincuenta} onPress={handleContinueWithoutAccount}
         >
           Continuar sin cuenta
         </Text>
