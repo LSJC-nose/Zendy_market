@@ -28,7 +28,7 @@ export default function FormularioRegistrarUsuarios({ cargarDatos }) {
                     nombre: nombre,
                     correo: correo,
                     rol: rol,
-                    tiendas: [], // inicializar array de tiendas para evitar problemas al filtrar más adelante
+                    tiendas: [], 
                     creadoEn: new Date()
                 });
 
@@ -39,7 +39,7 @@ export default function FormularioRegistrarUsuarios({ cargarDatos }) {
                 setRol("");
 
                 if (rol === "Cliente")
-                    navigation.replace('MyTabsCliente');// ir a la nav del cliente
+                    navigation.navigate('MyTabsCliente', { anonymous: true });
 
                 else if (rol === "Administrador")
                     navigation.replace('Suscripcion');
