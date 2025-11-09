@@ -4,13 +4,14 @@ import {
   Text,
   StyleSheet,
   FlatList,
-  Image,
   TouchableOpacity,
   ActivityIndicator,
+  Dimensions,
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { db } from '../database/firebaseConfig';
 import { collection, query, where, getDocs } from 'firebase/firestore';
+import Producto from '../Componentes/Productos';
 
 const CategoriaSeleccionada = () => {
   const route = useRoute();
@@ -19,6 +20,8 @@ const CategoriaSeleccionada = () => {
 
   const [productos, setProductos] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { width } = Dimensions.get('window');
+  const CARD_WIDTH = (width - 60) / 2;
 
   useEffect(() => {
     const cargarProductos = async () => {
@@ -47,17 +50,28 @@ const CategoriaSeleccionada = () => {
     cargarProductos();
   }, [nombre]);
 
-  const renderProducto = ({ item }) => (
-    <View style={styles.card}>
-      <Image
-        source={{ uri: item.imagen || 'https://via.placeholder.com/150' }}
-        style={styles.imagen}
-        resizeMode="cover"
-      />
-      <Text style={styles.nombre}>{item.nombre}</Text>
-      <Text style={styles.precio}>{item.precio} $</Text>
-    </View>
-  );
+  const renderProducto = ({ item }) => {
+    const imageSource = item.imagen?.startsWith('data:image/') || item.imagen?.startsWith('http')
+      ? { uri: item.imagen }
+      : { uri: 'https://via.placeholder.com/150?text=No+Imagen' };
+
+    return (
+      <View style={[styles.tarjeta, { width: CARD_WIDTH }]}
+      >
+        <Producto
+          image={imageSource}
+          precio={parseFloat(item.precio || 0).toFixed(2)}
+          descripcion={item.nombre || 'Sin nombre'}
+          hora_mes={item.stock ? `Stock: ${item.stock}` : 'Disponible'}
+          fondoColor="#f8f9fa"
+          cora="heart"
+          producto={{ ...item }}
+          onFavoritoPress={() => {}}
+          onPress={() => navigation.navigate('DetalleProducto', { producto: { ...item, image: imageSource, descripcion: item.nombre, precio: parseFloat(item.precio) } })}
+        />
+      </View>
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -85,20 +99,14 @@ const CategoriaSeleccionada = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5', padding: 15 },
+  container: { flex: 1, backgroundColor: '#E9F3F5', padding: 15 },
   titulo: { fontSize: 26, fontWeight: 'bold', textAlign: 'center', marginVertical: 20, color: '#2c3e50' },
-  row: { justifyContent: 'space-between', marginBottom: 15 },
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    width: '48%',
-    padding: 10,
-    elevation: 4,
-    alignItems: 'center',
+  row: { justifyContent: 'flex-start', marginBottom: 15, paddingHorizontal: 0 },
+  tarjeta: {
+    marginRight: 15,
+    marginBottom: 16,
+    overflow: 'hidden',
   },
-  imagen: { width: 100, height: 100, borderRadius: 12, marginBottom: 10 },
-  nombre: { fontSize: 16, fontWeight: '600', color: '#2c3e50' },
-  precio: { fontSize: 18, fontWeight: 'bold', color: '#27ae60', marginTop: 5 },
   vacio: { textAlign: 'center', fontSize: 18, color: '#95a5a6', marginTop: 50 },
   volver: {
     backgroundColor: '#e74c3c',

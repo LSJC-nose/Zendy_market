@@ -1,7 +1,8 @@
 // ../Componentes/Productos.js
 import React from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, Image, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
+import { useCart } from './Carrito';
 
 export default function Producto({
   image,
@@ -14,13 +15,26 @@ export default function Producto({
   cora,
   nombreTienda,
   isFavorito = false,
-  onFavoritoPress = () => {},
-  onPress = () => {},
+  onFavoritoPress = () => { },
+  onPress = () => { },
+  producto = null,
 }) {
+  const { addToCart } = useCart();
   return (
     <TouchableOpacity style={styles.tarjeta} onPress={onPress} activeOpacity={0.7}>
       <View style={[styles.contenedor_imagen, { backgroundColor: fondoColor }]}>
         <Image source={image} style={styles.imagen} />
+        {/* Corazón como overlay sobre la imagen */}
+        <TouchableOpacity
+          onPress={(e) => {
+            e.stopPropagation();
+            onFavoritoPress();
+          }}
+          style={styles.favoritoOverlay}
+          activeOpacity={0.8}
+        >
+          <FontAwesome5 name={cora} size={18} color={isFavorito ? '#ed3946' : '#ffffff'} solid={isFavorito} />
+        </TouchableOpacity>
       </View>
       <View style={styles.info}>
         <View style={styles.cora_pre}>
@@ -36,9 +50,20 @@ export default function Producto({
           </View>
           <TouchableOpacity onPress={(e) => {
             e.stopPropagation();
-            onFavoritoPress();
-          }} style={styles.iconoFavorito}>
-            <FontAwesome5 name={cora} size={20} color={isFavorito ? "#ed3946" : "#6f6f77ff"} solid={isFavorito} />
+            try {
+              const payload = producto || { id: null, precio, descripcion, image };
+              if (!payload.id && descripcion) {
+                // intentar inferir un id único si no existe (no ideal)
+                payload.id = descripcion + '_' + (precio || '0');
+              }
+              addToCart(payload);
+              Alert.alert('¡Listo!', 'Producto agregado al carrito');
+            } catch (err) {
+              console.error('Error al agregar al carrito:', err);
+              Alert.alert('Error', 'No se pudo agregar al carrito');
+            }
+          }} style={styles.iconoCarrito}>
+            <FontAwesome5 name="shopping-cart" size={18} color="#2a2c2eff" />
           </TouchableOpacity>
         </View>
         {oferta && (
@@ -50,7 +75,7 @@ export default function Producto({
         {nombreTienda && (
           <Text style={styles.nombreTienda}>Tienda: {nombreTienda}</Text>
         )}
-       
+
         <Text style={styles.explora}>{explora}</Text>
       </View>
     </TouchableOpacity>
@@ -59,32 +84,43 @@ export default function Producto({
 
 const styles = StyleSheet.create({
   tarjeta: {
-    backgroundColor: "#ffffffff",
-    borderRadius: 16,
-    height: 250,
-    borderWidth: 2,
+    backgroundColor: '#ffffffff',
+    borderRadius: 14,
+    minHeight: 260,
+    borderWidth: 1,
     borderColor: '#e4e0e0ff',
+    overflow: 'hidden',
+    width: '100%',
+    padding: 8,
+    marginBottom: 12,
   },
-  
+
   contenedor_imagen: {
     borderTopLeftRadius: 12,
-    borderTopRightRadius: 18,
-    width: 183,
-    height: 160,
+    borderTopRightRadius: 12,
+    width: '100%',
+    height: 140,
     marginBottom: 10,
-    alignItems: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
     overflow: 'hidden',
   },
   imagen: {
-    marginLeft:-12,
-    width: '96%',
+    width: '100%',
     height: '100%',
+    resizeMode: 'cover',
+  },
+  info: {
+    paddingHorizontal: 6,
+    paddingBottom: 6,
+    flex: 1,
+    justifyContent: 'space-between',
   },
   precio: {
     marginTop: -10,
     marginLeft: 10,
     margin: -2,
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
   },
   descripcion: {
@@ -106,40 +142,55 @@ const styles = StyleSheet.create({
   },
   cora_pre: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    marginRight: 14,
+    justifyContent: "flex-end",
+    marginRight: 6,
   },
   precioContainer: {
-  marginLeft: 3,
-  margin: 6,
-},
-precioOriginal: {
-  marginTop: 2,
-  fontSize: 18,
-  fontWeight: 'normal',
-  textDecorationLine: 'line-through',
-  color: '#999',
-},
-precioDescuento: {
-  fontSize: 24,
-  fontWeight: 'bold',
-  color: '#4CAF50',
-},
-badgeOferta: {
-  backgroundColor: '#ed3946',
-  paddingHorizontal: 8,
-  paddingVertical: 4,
-  borderRadius: 12,
-  alignSelf: 'flex-start',
-  marginLeft: 10,
-  marginBottom: 5,
-},
-textoBadge: {
+    marginLeft: 3,
+    margin: 6,
+  },
+  precioOriginal: {
+    marginTop: 2,
+    fontSize: 18,
+    fontWeight: 'normal',
+    textDecorationLine: 'line-through',
+    color: '#999',
+  },
+  precioDescuento: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#4CAF50',
+  },
+  badgeOferta: {
+    backgroundColor: '#ed3946',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    alignSelf: 'flex-start',
+    marginLeft: 10,
+    marginBottom: 5,
+  },
+  textoBadge: {
     color: 'white',
     fontSize: 12,
     fontWeight: 'bold',
   },
   iconoFavorito: {
     padding: 4,
+  },
+  iconoCarrito: {
+    padding: 4,
+    marginLeft: 6,
+  },
+  favoritoOverlay: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    backgroundColor: 'rgba(0,0,0,0.35)',
+    borderRadius: 20,
+    padding: 6,
+    zIndex: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

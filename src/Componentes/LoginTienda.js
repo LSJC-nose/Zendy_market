@@ -54,7 +54,7 @@ const LoginTienda = ({ onLoginSuccess }) => {
         navigation.replace('MyTabsCliente');// ir a la nav del cliente
 
       else if (rol === "Administrador")
-        navigation.replace('Suscripcion');
+        navigation.replace('MyTabsAdmon');
 
       else if (rol === "SuperAdministrador")
         navigation.replace('MyTabsSuperAdmon');

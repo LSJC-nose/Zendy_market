@@ -147,6 +147,7 @@ export default function Home() {
     return productos.find(p => p.nombre === nombre) || {};
   };
 
+
   return (
     <View style={styles.container}>
       {/* HEADER BUSCADOR */}
@@ -232,7 +233,6 @@ export default function Home() {
                         hora_mes={`Vendidos: ${p.cantidad}`}
                         explora=""
                         fondoColor="#f8f9fa"
-                        nombreTienda={nombreTienda}
                         isFavorito={!!favoritos[prod.id]}
                         onFavoritoPress={() => toggleFavorito(prod.id)}
                         onPress={() => navigation.navigate('DetalleProducto', {
@@ -244,6 +244,13 @@ export default function Home() {
                             rating: prod.rating || 4.5,
                           }
                         })}
+                            producto={{
+                              ...prod,
+                              id: prod.id,
+                              precio: p.precio,
+                              descripcion: p.nombre,
+                              image: { uri: p.imagen || prod.imagen }
+                            }}
                       />
                     </View>
                   );
@@ -340,14 +347,15 @@ const styles = StyleSheet.create({
   productosContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
+    justifyContent: 'flex-start',
     marginTop: 8,
   },
   tarjeta: {
-    width: (width - 49) / 2,
+    width: (width - 44) / 2,
     marginBottom: 16,
     overflow: 'hidden',
+    marginHorizontal: 6,
+    alignSelf: 'flex-start',
   },
   contenedorCuadros: {
     flexDirection: 'row',
