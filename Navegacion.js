@@ -28,6 +28,7 @@ import ProductChart from './src/Screens/Reportes.js';
 import Direcciones from './src/Screens/Direcciones.js';
 import RegistrarUsuarios from './src/Screens/RegistrarUsuarios.js';
 import GestionÓrdenes from './src/Componentes/GestionÓrdenes.js';
+import CheckoutScreen from './src/Screens/CheckoutScreen.js';
 
 // Declaración de navegadores
 const Tab = createBottomTabNavigator();
@@ -216,6 +217,7 @@ function StackLogin() {
             <StackNav.Screen name="MyTabsAdmon" component={MyTabsAdmon} />
             <StackNav.Screen name="MyTabsSuperAdmon" component={MyTabsSuperAdmon} />
             <StackNav.Screen name="RegistrarUsuarios" component={RegistrarUsuarios} />
+            <StackNav.Screen name="Checkout" component={CheckoutScreen} />
         </StackNav.Navigator>
     );
 }

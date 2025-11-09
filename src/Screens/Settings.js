@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -15,11 +15,7 @@ import { useNavigation } from '@react-navigation/native';
 
 const Settings = () => {
   const { cartItems, updateQuantity, removeFromCart, getTotalPrice, getTotalItems } = useCart();
-   const navigation = useNavigation();
-  const [nuevaCompra, setNuevaCompra] = useState({
-     nombre: "",
-     foto: "",
-   });
+  const navigation = useNavigation();
 
   const removeItem = (id) => {
     Alert.alert(
@@ -106,7 +102,7 @@ const Settings = () => {
             </View>
             <TouchableOpacity 
               style={styles.checkoutButton}
-              onPress={() => navigation.navigate('Direcciones')}
+              onPress={() => navigation.navigate('Checkout', { cartItems })}
             >
               <Text style={styles.checkoutText}>Proceder al Pago</Text>
             </TouchableOpacity>

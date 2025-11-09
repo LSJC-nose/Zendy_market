@@ -1,4 +1,3 @@
-// src/Screens/DetalleProductoScreen.js
 import React, { useState, useEffect } from 'react';
 import { 
   View, Text, Image, StyleSheet, TouchableOpacity, ScrollView, 
@@ -11,6 +10,7 @@ import AntDesign from '@expo/vector-icons/AntDesign';
 import { db, auth } from '../database/firebaseConfig.js';
 import { collection, getDocs, addDoc, updateDoc, doc, writeBatch, getDoc } from 'firebase/firestore';
 import { useCart } from '../Componentes/Carrito.js';
+import CheckoutScreen from './CheckoutScreen'; 
 
 const { width } = Dimensions.get('window');
 
@@ -51,20 +51,23 @@ export default function DetalleProductoScreen() {
 
   useEffect(() => {
     if (currentUser) {
-      const cargarDirecciones = async () => {
-        try {
-          const querySnapshot = await getDocs(collection(db, 'direcciones'));
-          const data = querySnapshot.docs
-            .map((doc) => ({ id: doc.id, ...doc.data() }))
-            .filter((dir) => dir.userId === currentUser.uid);
-          setAddresses(data);
-          if (data.length > 0) setSelectedAddress(data[0]);
-        } catch (error) {
-          console.error('Error al cargar direcciones:', error);
-          Alert.alert('Error', 'No se pudieron cargar las direcciones.');
-        }
-      };
-      cargarDirecciones();
+const cargarDirecciones = async () => {
+    try {
+      const querySnapshot = await getDocs(collection(db, 'direcciones'));
+      const data = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      // ← Temporal para simulación: omitir filter para mostrar TODAS (10+). Re-activa después: .filter((dir) => dir.userId === currentUser.uid)
+      // const data = querySnapshot.docs
+      //   .map((doc) => ({ id: doc.id, ...doc.data() }))
+      //   .filter((dir) => dir.userId === currentUser.uid);
+      setAddresses(data);
+      if (data.length > 0) setSelectedAddress(data[0]);
+      console.log(`Direcciones cargadas: ${data.length}`);  // ← Debug: Ver en console cuántas carga
+    } catch (error) {
+      console.error('Error al cargar direcciones:', error);
+      Alert.alert('Error', 'No se pudieron cargar las direcciones.');
+    }
+  };
+  cargarDirecciones();
     }
   }, [currentUser]);
 
@@ -84,64 +87,59 @@ export default function DetalleProductoScreen() {
   const fullDescription = producto?.descripcion || "Creado para la cancha pero llevado a las calles. Estilo urbano con rendimiento profesional.";
   const shortDescription = fullDescription.length > 120 ? fullDescription.substring(0, 120) + "..." : fullDescription;
 
-  const realizarCompra = async () => {
-    if (!currentUser) {
-      Alert.alert('Inicia sesión', 'Debes iniciar sesión para comprar.', [
-        { text: 'OK', onPress: () => navigation.navigate('Login') }
-      ]);
-      return;
-    }
-    if (cartItems.length === 0) {
-      Alert.alert('Carrito vacío', 'Agrega productos al carrito.');
-      return;
-    }
-    if (!selectedAddress) {
-      Alert.alert('Dirección requerida', 'Selecciona una dirección de envío.');
-      setShowAddressModal(true);
-      return;
-    }
+const realizarCompra = async () => {
+  console.log('Iniciando compra...');  // ← Debug
 
-    setLoading(true);
-    try {
-      const batch = writeBatch(db);
-      let total = 0;
-      const productosOrden = [];
+  // ← Simulación: Usa userId fijo si no auth (para test)
+  const userId = currentUser ? currentUser.uid : 'testUser123';
 
-      for (const item of cartItems) {
-        const productoRef = doc(db, 'productos', item.id);
-        const snap = await getDoc(productoRef);
-        if (!snap.exists() || (snap.data().stock || 0) < item.cantidad) {
-          Alert.alert('Sin stock', `${item.descripcion} no tiene suficiente stock.`);
-          setLoading(false);
-          return;
-        }
-        productosOrden.push({ idProducto: item.id, cantidad: item.cantidad, precioUnitario: item.precio });
-        total += item.precio * item.cantidad;
-        batch.update(productoRef, { stock: snap.data().stock - item.cantidad });
-      }
+  // ← Fallback: Si cart vacío, usa el producto actual con cantidad 1
+  const items = cartItems.length > 0 ? cartItems : [producto];
+  const total = items.reduce((sum, item) => sum + (item.precio * (item.cantidad || 1)), 0);
 
-      const nuevaOrden = {
-        userId: currentUser.uid,
-        productos: productosOrden,
-        estado: 'Procesando',
-        total,
-        fechaCreacion: new Date(),
-        direccionEnvio: selectedAddress.id,
-      };
+  // ← Productos array: Mapea a estructura de base (idProducto, cantidad 1, precioUnitario)
+  const productosOrden = items.map((item) => ({
+    idProducto: item.id,  // ← Como en tu base
+    cantidad: 1,  // ← Predeterminado 1
+    precioUnitario: item.precio,  // ← Precio del producto
+  }));
 
-      const docRef = await addDoc(collection(db, 'órdenes'), nuevaOrden);
-      await batch.commit();
-      clearCart();
+  // ← Dirección: Concatena como string completo (calle + ciudad + referencias)
+  const direccionEnvio = selectedAddress ? `${selectedAddress.calle || ''}, ${selectedAddress.ciudad || ''}${selectedAddress.referencias ? ` (${selectedAddress.referencias})` : ''}`.trim() : 'Por seleccionar';
 
-      Alert.alert('¡Compra exitosa!', `Orden #${docRef.id}\nTotal: $${total.toFixed(2)}`, [
-        { text: 'Ver órdenes', onPress: () => navigation.navigate('MisÓrdenes') }
-      ]);
-    } catch (error) {
-      Alert.alert('Error', 'No se pudo procesar la compra. Intenta de nuevo.');
-    } finally {
-      setLoading(false);
-    }
+  const nuevaOrden = {
+    userId: userId,  // ← De auth o test
+    productos: productosOrden,  // ← Array como en base
+    estado: 'Procesando',  // ← Predeterminado
+    metodoEnvio: 'Por seleccionar',  // ← Predeterminado hasta admin
+    total: total,  // ← Precio * 1 o suma cart
+    fechaCreacion: new Date(),  // ← Actual
+    fechaActualizacion: new Date(),  // ← Actual
+    direccionEnvio: direccionEnvio,  // ← String completo de seleccionada
+    notas: selectedAddress ? selectedAddress.referencias || '' : '',  // ← Referencias como notas
   };
+
+  console.log('Creando orden:', nuevaOrden);  // ← Debug: Ver datos
+
+  setLoading(true);
+  try {
+    const docRef = await addDoc(collection(db, 'órdenes'), nuevaOrden);
+    console.log('Orden agregada con ID:', docRef.id);  // ← Confirmar éxito
+
+    if (cartItems.length > 0) clearCart();  // ← Limpia si había cart
+
+    Alert.alert(
+      '¡Compra simulada exitosa!',
+      `Orden #${docRef.id.substring(0, 8)}...\nTotal: $${total}\nEstado: Procesando\nDirección: ${direccionEnvio}\n¡Revisa en Firebase!`,
+      [{ text: 'OK', onPress: () => navigation.goBack() }]
+    );
+  } catch (error) {
+    console.error('Error:', error);  // ← Debug completo
+    Alert.alert('Error', `No se pudo agregar: ${error.message}. Chequea rules/auth.`);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const renderAddressItem = ({ item }) => (
     <TouchableOpacity
@@ -157,7 +155,7 @@ export default function DetalleProductoScreen() {
     </TouchableOpacity>
   );
 
-  return (
+return (
     <View style={styles.container}>
       {/* HEADER ELEGANTE */}
       <View style={styles.header}>
@@ -214,7 +212,7 @@ export default function DetalleProductoScreen() {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Entrega a</Text>
             <TouchableOpacity style={styles.addressCard} onPress={() => setShowAddressModal(true)}>
-              <FontAwesome name="map-marker" size={22} color="#FF6B35" />
+              <FontAwesome name="map-marker" size={18} color="#FF6B35" />
               <View style={styles.addressInfo}>
                 <Text style={styles.addressMain}>
                   {selectedAddress ? `${selectedAddress.calle}, ${selectedAddress.ciudad}` : 'Selecciona dirección'}
@@ -234,6 +232,10 @@ export default function DetalleProductoScreen() {
         <TouchableOpacity 
           style={styles.cartBtn}
           onPress={() => {
+            if (!producto || !producto.id) {
+              Alert.alert('Error', 'No se puede agregar el producto al carrito');
+              return;
+            }
             addToCart(producto);
             Alert.alert('¡Listo!', 'Producto agregado al carrito', [
               { text: 'Ver carrito', onPress: () => navigation.navigate('Carrito') }
@@ -247,15 +249,10 @@ export default function DetalleProductoScreen() {
         </TouchableOpacity>
 
         <TouchableOpacity 
-          style={[styles.buyBtn, loading && styles.buyBtnDisabled]}
-          onPress={realizarCompra}
-          disabled={loading}
+          style={styles.buyBtn}
+          onPress={() => navigation.navigate('Checkout', { selectedAddress, cartItems, producto })}
         >
-          {loading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.buyBtnText}>Comprar Ahora</Text>
-          )}
+          <Text style={styles.buyBtnText}>Comprar Ahora</Text>
         </TouchableOpacity>
       </View>
 

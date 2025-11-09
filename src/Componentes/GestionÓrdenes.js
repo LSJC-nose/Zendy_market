@@ -46,7 +46,7 @@ export default function GestionÓrdenes() {
   const abrirEditar = (order) => {
     setSelectedOrder(order);
     setNuevoEstado(order.estado || 'Procesando');
-    setNuevoMétodoEnvio(order.métodoEnvio || 'Por seleccionar');
+    setNuevoMétodoEnvio(order.metodoEnvio || 'Por seleccionar');
     setShowModal(true);
   };
 
@@ -59,10 +59,11 @@ export default function GestionÓrdenes() {
 
     setLoading(true);
     try {
-      await addDoc(doc(db, 'órdenes', selectedOrder.id), {
+      // ← Corregido: usar updateDoc en lugar de addDoc para actualizar doc existente
+      await updateDoc(doc(db, 'órdenes', selectedOrder.id), {
         estado: nuevoEstado,
-        métodoEnvio: nuevoMétodoEnvio,
-        fechaActualización: new Date(),
+        metodoEnvio: nuevoMétodoEnvio,
+        fechaActualizacion: new Date(),  // ← Sin tilde para coincidir con DB
       });
 
       setShowModal(false);
@@ -85,10 +86,10 @@ export default function GestionÓrdenes() {
           {item.estado || 'Procesando'}
         </Text>
       </View>
-      <Text style={styles.orderUser}>User: {item.userId}</Text>
-      <Text style={styles.orderTotal}>Total: ${item.total || 0}</Text>
-      <Text style={styles.orderEnvio}>Envío: {item.métodoEnvio || 'Por seleccionar'}</Text>
-      <Text style={styles.orderDate}>Fecha: {item.fechaCreacion?.toDate().toLocaleDateString() || 'Reciente'}</Text>
+      {/* ← Removido userId ya que no existe en el esquema de DB */}
+      <Text style={styles.orderTotal}>Total: ${parseFloat(item.total || 0).toFixed(2)}</Text>
+      <Text style={styles.orderEnvio}>Envío: {item.metodoEnvio || 'Por seleccionar'}</Text>
+      <Text style={styles.orderDate}>Fecha: {item.fechaCreacion?.toDate().toLocaleDateString('es-ES') || 'Reciente'}</Text>
     </TouchableOpacity>
   );
 
@@ -206,11 +207,6 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: 'bold',
     fontSize: 12,
-  },
-  orderUser: {
-    fontSize: 16,
-    color: '#666',
-    marginBottom: 5,
   },
   orderTotal: {
     fontSize: 18,

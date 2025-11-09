@@ -171,4 +171,3 @@ const ProductChart = () => {
 };
 
 export default ProductChart;
-// ...existing code...

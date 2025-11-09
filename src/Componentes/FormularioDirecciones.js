@@ -100,13 +100,13 @@ export default function FormularioDirecciones({ onSave = () => { }, saveToFirest
       <Text style={styles.title}>Agregar dirección</Text>
 
       <Text style={styles.label}>Nombre destinatario *</Text>
-      <TextInput style={styles.input} value={nombre} onChangeText={setNombre} placeholder="Ej. Juan Pérez" />
+      <TextInput style={styles.input} value={nombre} onChangeText={setNombre} placeholder="Nombre completo" />
 
       <Text style={styles.label}>Teléfono *</Text>
-      <TextInput style={styles.input} value={telefono} onChangeText={setTelefono} placeholder="Ej. 5512345678" keyboardType="phone-pad" />
+      <TextInput style={styles.input} value={telefono} onChangeText={setTelefono} placeholder="8888-8888" keyboardType="phone-pad" />
 
       <Text style={styles.label}>Calle y número *</Text>
-      <TextInput style={styles.input} value={calle} onChangeText={setCalle} placeholder="Ej. Av. Reforma 123" />
+      <TextInput style={styles.input} value={calle} onChangeText={setCalle} placeholder="Direccion de la calle" />
 
       <Text style={styles.label}>Colonia / Barrio</Text>
       <TextInput style={styles.input} value={colonia} onChangeText={setColonia} placeholder="Colonia" />
