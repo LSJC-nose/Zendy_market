@@ -81,7 +81,7 @@ export default function PagosClientes() {
                             alignItems: 'center',
                             marginTop: 10
                         }}
-                        onPress={guardarCompra}
+                        onPress={guardarventas}
                     >
 
                         <Text style={{ color: '#fff', fontWeight: 'bold' }}>Continuar con Google Pay</Text>
