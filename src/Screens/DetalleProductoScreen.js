@@ -8,7 +8,9 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import { db, auth } from '../database/firebaseConfig.js';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { collection, getDocs, addDoc, updateDoc, doc, writeBatch, getDoc } from 'firebase/firestore';
+import ModalCalificacion from '../Componentes/ModalCalificacion';
 import { useCart } from '../Componentes/Carrito.js';
 import CheckoutScreen from './CheckoutScreen'; 
 
@@ -26,6 +28,8 @@ export default function DetalleProductoScreen() {
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [showAddressModal, setShowAddressModal] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showRatingModal, setShowRatingModal] = useState(false);
+  const [selectedRating, setSelectedRating] = useState(null);
 
   const currentUser = auth.currentUser;
 
@@ -55,10 +59,6 @@ const cargarDirecciones = async () => {
     try {
       const querySnapshot = await getDocs(collection(db, 'direcciones'));
       const data = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-      // ← Temporal para simulación: omitir filter para mostrar TODAS (10+). Re-activa después: .filter((dir) => dir.userId === currentUser.uid)
-      // const data = querySnapshot.docs
-      //   .map((doc) => ({ id: doc.id, ...doc.data() }))
-      //   .filter((dir) => dir.userId === currentUser.uid);
       setAddresses(data);
       if (data.length > 0) setSelectedAddress(data[0]);
       console.log(`Direcciones cargadas: ${data.length}`);  // ← Debug: Ver en console cuántas carga
@@ -175,10 +175,12 @@ return (
 
         {/* INFO SUPERIOR */}
         <View style={styles.infoCard}>
-          <View style={styles.ratingRow}>
-            <View style={styles.stars}>{estrellas}</View>
-            <Text style={styles.ratingText}>{rating.toFixed(1)}</Text>
-          </View>
+          <TouchableOpacity activeOpacity={0.8} onPress={() => setShowRatingModal(true)}>
+            <View style={styles.ratingRow}>
+              <View style={styles.stars}>{estrellas}</View>
+              <Text style={styles.ratingText}>{(selectedRating ?? rating).toFixed(1)}</Text>
+            </View>
+          </TouchableOpacity>
 
           <Text style={styles.productName}>{nombre}</Text>
           <Text style={styles.productPrice}>${precio}</Text>
@@ -201,12 +203,17 @@ return (
             <Text style={styles.descriptionText}>
               {showFullDescription ? fullDescription : shortDescription}
             </Text>
+            {/* Mostrar stock del producto si está disponible, si no usar stock de tienda (antiguo) o 'N/A' */}
+            <Text style={styles.tiendaName}>
+              {`Stock: ${producto?.stock ?? tiendaInfo?.Stock ?? 'N/A'}`}
+            </Text>
             <TouchableOpacity onPress={() => setShowFullDescription(!showFullDescription)}>
               <Text style={styles.readMoreText}>
                 {showFullDescription ? 'Mostrar menos' : 'Leer más'}
               </Text>
             </TouchableOpacity>
           </View>
+          
 
           {/* DIRECCIÓN */}
           <View style={styles.section}>
@@ -250,7 +257,18 @@ return (
 
         <TouchableOpacity 
           style={styles.buyBtn}
-          onPress={() => navigation.navigate('Checkout', { selectedAddress, cartItems, producto })}
+          onPress={async () => {
+            try {
+              const isAnon = await AsyncStorage.getItem('isAnonymous');
+              if (isAnon === 'true') {
+                Alert.alert('Acceso restringido', 'No puedes proceder al pago sin una cuenta. Por favor crea una cuenta o inicia sesión.');
+                return;
+              }
+            } catch (e) {
+              console.error('Error leyendo isAnonymous:', e);
+            }
+            navigation.navigate('Checkout', { selectedAddress, cartItems, producto });
+          }}
         >
           <Text style={styles.buyBtnText}>Comprar Ahora</Text>
         </TouchableOpacity>
@@ -286,6 +304,16 @@ return (
           </View>
         </View>
       </Modal>
+      {/* Rating modal */}
+      <ModalCalificacion
+        visible={showRatingModal}
+        onClose={() => setShowRatingModal(false)}
+        productoId={producto?.id}
+        tiendaId={producto?.tiendaId || tiendaInfo?.id}
+        userId={currentUser ? currentUser.uid : null}
+        initialRating={selectedRating ?? Math.round(rating)}
+        onSaved={(value) => { setSelectedRating(value); setShowRatingModal(false); }}
+      />
     </View>
   );
 }

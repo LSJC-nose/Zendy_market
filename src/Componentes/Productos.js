@@ -20,6 +20,7 @@ export default function Producto({
   producto = null,
 }) {
   const { addToCart } = useCart();
+  const stockText = hora_mes || (producto && (producto.stock !== undefined && producto.stock !== null) ? `Stock: ${producto.stock}` : null);
   return (
     <TouchableOpacity style={styles.tarjeta} onPress={onPress} activeOpacity={0.7}>
       <View style={[styles.contenedor_imagen, { backgroundColor: fondoColor }]}>
@@ -76,7 +77,8 @@ export default function Producto({
           <Text style={styles.nombreTienda}>Tienda: {nombreTienda}</Text>
         )}
 
-        <Text style={styles.explora}>{explora}</Text>
+        {/* Mostrar stock si viene en hora_mes o en el objeto producto */}
+        {stockText ? <Text style={styles.explora}>{stockText}</Text> : <Text style={styles.explora}>{explora}</Text>}
       </View>
     </TouchableOpacity>
   );

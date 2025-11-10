@@ -12,6 +12,7 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import { useCart } from '../Componentes/Carrito'
 import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Settings = () => {
   const { cartItems, updateQuantity, removeFromCart, getTotalPrice, getTotalItems } = useCart();
@@ -102,7 +103,18 @@ const Settings = () => {
             </View>
             <TouchableOpacity 
               style={styles.checkoutButton}
-              onPress={() => navigation.navigate('Checkout', { cartItems })}
+              onPress={async () => {
+                try {
+                  const isAnon = await AsyncStorage.getItem('isAnonymous');
+                  if (isAnon === 'true') {
+                    Alert.alert('Acceso restringido', 'No puedes proceder al pago sin una cuenta. Por favor crea una cuenta o inicia sesión.');
+                    return;
+                  }
+                } catch (e) {
+                  console.error('Error leyendo isAnonymous:', e);
+                }
+                navigation.navigate('Checkout', { cartItems });
+              }}
             >
               <Text style={styles.checkoutText}>Proceder al Pago</Text>
             </TouchableOpacity>

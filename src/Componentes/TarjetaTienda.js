@@ -6,6 +6,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import BotonEliminarTienda from './BotonEliminarTienda';
 import TablaProductos from './TablaProductos';
 import AntDesign from '@expo/vector-icons/AntDesign';
+import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import * as ImagePicker from 'expo-image-picker';
 import { db } from '../database/firebaseConfig';
 import { getDocs, collection, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
@@ -230,6 +231,14 @@ const TarjetaTienda = ({ tienda, eliminarTienda }) => {
                                     <Image source={{ uri: item.foto }} style={styles.imagen} />
                                     <View style={styles.info}>
                                         <Text style={styles.nombre}>{item.nombre ?? 'Sin nombre'}</Text>
+                                        <View style={{ flexDirection: 'row', marginTop: 6, alignItems: 'center' }}>
+                                            {Array.from({ length: 5 }, (_, i) => {
+                                                const ratingVal = (item.ratingSum && item.ratingCount) ? (item.ratingSum / item.ratingCount) : (item.avgRating ?? item.rating ?? 0);
+                                                const filled = i < Math.round(ratingVal);
+                                                return <FontAwesome5 key={i} name={filled ? 'star' : 'star-o'} size={14} color="#FFD700" style={{ marginRight: 4 }} />;
+                                            })}
+                                            <Text style={{ marginLeft: 8, fontSize: 12, color: '#333' }}>{((item.ratingSum && item.ratingCount) ? (item.ratingSum / item.ratingCount) : (item.avgRating ?? item.rating ?? 0)).toFixed(1)}</Text>
+                                        </View>
                                     </View>
                                     <BotonEliminarTienda id={item.id} eliminarTienda={eliminarTienda} />
                                     <ModalEditarTienda id={item.id} tiendaData={item} />

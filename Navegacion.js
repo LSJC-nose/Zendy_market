@@ -69,6 +69,7 @@ function StackHomeCliente() {
             <StackNav.Screen name="Ofertas" component={Ofertas} />
             <StackNav.Screen name="DetalleProducto" component={DetalleProductoScreen} />
             <StackNav.Screen name="CategoriaSeleccionada" component={CategoriaSeleccionada} />
+            
         </StackNav.Navigator>
     );
 }
@@ -141,14 +142,7 @@ function MyTabsAdmon() {
                     tabBarIcon: ({ color }) => <MaterialIcons name="category" size={24} color="black" />,
                 }}
             />
-            <Tab.Screen
-                name="GestionÓrdenes"
-                component={GestionÓrdenes}
-                options={{
-                    tabBarLabel: 'Órdenes',
-                    tabBarIcon: ({ color }) => <AntDesign name="profile" size={30} color={color} />,
-                }}
-            />
+            
 
         </Tab.Navigator>
     );
@@ -218,6 +212,7 @@ function StackLogin() {
             <StackNav.Screen name="MyTabsSuperAdmon" component={MyTabsSuperAdmon} />
             <StackNav.Screen name="RegistrarUsuarios" component={RegistrarUsuarios} />
             <StackNav.Screen name="Checkout" component={CheckoutScreen} />
+            <StackNav.Screen name="GestionÓrdenes" component={GestionÓrdenes} />
         </StackNav.Navigator>
     );
 }

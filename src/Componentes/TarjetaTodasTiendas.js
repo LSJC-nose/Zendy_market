@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import ModalUsuarioDueño from './ModalUsuarioDueño';
+import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 
 export default function TarjetaTodasTiendas({ tienda }) {
     const [modalVisible, setModalVisible] = useState(false);
@@ -28,6 +29,14 @@ export default function TarjetaTodasTiendas({ tienda }) {
                         <Image source={{ uri: item.foto }} style={styles.imagen} />
                         <View style={styles.info}>
                             <Text style={styles.nombre}>{item.nombre}</Text>
+                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                {Array.from({ length: 5 }, (_, i) => {
+                                    const ratingVal = (item.ratingSum && item.ratingCount) ? (item.ratingSum / item.ratingCount) : (item.avgRating ?? item.rating ?? 0);
+                                    const filled = i < Math.round(ratingVal);
+                                    return <FontAwesome5 key={i} name={filled ? 'star' : 'star-o'} size={12} color="#FFD700" style={{ marginRight: 3 }} />;
+                                })}
+                                <Text style={{ marginLeft: 6, fontSize: 12 }}>{((item.ratingSum && item.ratingCount) ? (item.ratingSum / item.ratingCount) : (item.avgRating ?? item.rating ?? 0)).toFixed(1)}</Text>
+                            </View>
                         </View>
                         <TouchableOpacity
                             style={styles.btn_usuario}

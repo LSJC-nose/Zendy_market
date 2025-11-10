@@ -16,7 +16,7 @@ import Fontisto from '@expo/vector-icons/Fontisto';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import { useCart } from '../Componentes/Carrito';
 import { db } from '../database/firebaseConfig';
-import { addDoc, collection } from 'firebase/firestore';
+import { addDoc, collection, doc, runTransaction } from 'firebase/firestore';
 import { useNavigation } from '@react-navigation/native';
 
 const Checkout = () => {
@@ -61,9 +61,10 @@ const Checkout = () => {
   const [expiry, setExpiry] = useState('');
   const [cvv, setCvv] = useState('');
   const [selectedMethod, setSelectedMethod] = useState('credit');
+  
 
   // GUARDAR ORDEN EN FIRESTORE (usando estructura de ejemplo: colección 'órdenes')
-  const guardarOrden = async () => {
+  const guardarVenta = async () => {
     if (!selectedAddress) {
       Alert.alert('Error', 'Por favor, selecciona una dirección de envío.');
       return;
@@ -77,13 +78,54 @@ const Checkout = () => {
       return;
     }
 
+    if (!cartItems || cartItems.length === 0) {
+                Alert.alert('Carrito vacío', 'Agrega productos al carrito antes de pagar');
+                return;
+            }
+
     try {
+      // Primero: verificar y actualizar stock de todos los productos en una sola transacción
+      const productRefs = cartItems.map((item) => doc(db, 'productos', item.id));
+
+      await runTransaction(db, async (transaction) => {
+        for (let i = 0; i < cartItems.length; i++) {
+          const item = cartItems[i];
+          const prodRef = productRefs[i];
+          const prodSnap = await transaction.get(prodRef);
+
+          if (!prodSnap.exists()) {
+            throw new Error(`Producto no encontrado: ${item.name}`);
+          }
+
+          const stock = prodSnap.data().stock ?? 0;
+          if (stock < item.quantity) {
+            throw new Error(`Stock insuficiente para ${item.name}`);
+          }
+
+          // Actualizar stock
+          transaction.update(prodRef, { stock: stock - item.quantity });
+        }
+      });
+
+      // Si llegamos aquí, la transacción de stock fue exitosa. Guardar ventas individuales (histórico) y la orden.
+      for (const item of cartItems) {
+        await addDoc(collection(db, 'ventas'), {
+          metodoPago: selectedMethod,
+          nombreProducto: item.name,
+          precio: item.price,
+          cantidad: item.quantity,
+          tiendaId: item.tiendaId,
+          fecha: new Date(),
+          imagen: item.image || null,
+        });
+      }
+
       // Preparar array de productos basado en estructura de ejemplo
-      const productosArray = cartItems.map(item => ({
+      const productosArray = cartItems.map((item) => ({
         cantidad: item.quantity.toString(),
         idProducto: item.id, // Asumiendo que item.id es el idProducto
         precioUnitario: item.price.toString(),
-        tiendaId: item.tiendaId || 'xSXGtL2rPnjK74FK' // Usa el del ejemplo o del item si existe
+        tiendaId: item.tiendaId || 'xSXGtL2rPnjK74FK', // Usa el del ejemplo o del item si existe
       }));
 
       await addDoc(collection(db, 'órdenes'), {
@@ -91,17 +133,23 @@ const Checkout = () => {
         estado: 'Procesando',
         fechaActualizacion: new Date(),
         fechaCreacion: new Date(),
-        metodoEnvio: 'Por seleccionar', 
-        notas: 'Al lado de una casa amarilla', 
+        metodoEnvio: 'Por seleccionar',
+        notas: 'Al lado de una casa amarilla',
         productos: productosArray,
-        total: getTotalPrice().toString()
+        total: getTotalPrice().toString(),
       });
 
       clearCart();
       Alert.alert('Tu compra se ha procesado con éxito');
       navigation.navigate('MyTabsCliente'); // O ajusta a tu navegación
     } catch (error) {
-      console.error('Error al guardar orden:', error);
+     
+      // Mensajes más específicos para casos comunes
+      if (error.message && error.message.toLowerCase().includes('stock insuficiente')) {
+        Alert.alert('Stock insuficiente', error.message);
+        return;
+      }
+
       Alert.alert('Error', 'No se pudo guardar la orden. Verifica tu conexión.');
     }
   };
@@ -210,7 +258,7 @@ const Checkout = () => {
               Serás redirigido a Google Pay para completar tu pago de forma segura.
             </Text>
             <Text style={styles.total}>Total a pagar ${getTotalPrice().toFixed(2)}</Text>
-            <TouchableOpacity style={styles.gpayButton} onPress={guardarOrden}>
+            <TouchableOpacity style={styles.gpayButton} onPress={guardarVenta}>
               <Text style={styles.gpayButtonText}>Continuar con Google Pay</Text>
             </TouchableOpacity>
             <Text style={styles.securityText}>
@@ -223,7 +271,7 @@ const Checkout = () => {
           <View style={styles.paypalSection}>
             <Text style={styles.texto}>Serás redirigido a PayPal para completar tu pago.</Text>
             <Text style={styles.total}>Total a pagar ${getTotalPrice().toFixed(2)}</Text>
-            <TouchableOpacity style={styles.paypalButton} onPress={guardarOrden}>
+            <TouchableOpacity style={styles.paypalButton} onPress={guardarVenta}>
               <Text style={styles.paypalButtonText}>Pagar con PayPal</Text>
             </TouchableOpacity>
             <Text style={styles.securityText}>🔒 Pago seguro con PayPal</Text>
@@ -262,7 +310,7 @@ const Checkout = () => {
             </View>
             <View style={styles.pagar}>
               <Text style={styles.total}>Total ${getTotalPrice().toFixed(2)}</Text>
-              <TouchableOpacity style={styles.payButton} onPress={guardarOrden}>
+              <TouchableOpacity style={styles.payButton} onPress={guardarVenta}>
                 <Text style={styles.payText}>Pagar</Text>
               </TouchableOpacity>
             </View>
