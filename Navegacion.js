@@ -29,6 +29,7 @@ import Direcciones from './src/Screens/Direcciones.js';
 import RegistrarUsuarios from './src/Screens/RegistrarUsuarios.js';
 import GestionÓrdenes from './src/Componentes/GestionÓrdenes.js';
 import CheckoutScreen from './src/Screens/CheckoutScreen.js';
+import ReporteSuperAdmin from './src/Screens/ReportesSuperAdmin.js';
 
 // Declaración de navegadores
 const Tab = createBottomTabNavigator();
@@ -188,6 +189,16 @@ function MyTabsSuperAdmon() {
                     tabBarIcon: ({ color }) => <MaterialIcons name="category" size={24} color="black" />,
                 }}
             />
+
+            <Tab.Screen
+                name="Grafico"
+                component={ReporteSuperAdmin}
+                options={{
+                    tabBarLabel: 'ReporteSuperAdmin',
+                    tabBarIcon: ({ color }) => <MaterialIcons name="category" size={24} color="black" />,
+                }}
+            />
+
 
         </Tab.Navigator>
     );
