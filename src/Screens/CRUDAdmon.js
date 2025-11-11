@@ -5,74 +5,171 @@ import {
   StyleSheet,
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   FlatList,
   StatusBar,
   ScrollView,
+  ActivityIndicator,
 } from 'react-native'
-
 import { useNavigation } from '@react-navigation/native';
 import { auth, db } from '../database/firebaseConfig';
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import {
+  collection,
+  query,
+  where,
+  onSnapshot,
+  getDoc,
+  doc,
+} from 'firebase/firestore';
 
 export default function CRUDAdmon() {
   const navigation = useNavigation();
   const [nombreUsuario, setNombreUsuario] = useState('Usuario');
+  const [stats, setStats] = useState([
+    { id: '1', icon: '🛒', label: 'Órdenes', value: 0 },
+    { id: '2', icon: '💸', label: 'Ganancias', value: '$0' },
+    { id: '3', icon: '📉', label: 'Pérdidas Stock', value: 0 },
+  ]);
+  const [loadingStats, setLoadingStats] = useState(true);
 
+  // Cargar nombre del usuario
   useEffect(() => {
     const obtenerNombreUsuario = async () => {
       try {
         const currentUser = auth.currentUser;
-        if (currentUser && currentUser.email) {
-          const q = query(
-            collection(db, 'usuario'),
-            where('correo', '==', currentUser.email)
-          );
-          const querySnapshot = await getDocs(q);
-          querySnapshot.forEach((doc) => {
-            const data = doc.data();
-            if (data.nombre) {
-              setNombreUsuario(data.nombre);
-            }
-          });
+        if (currentUser && currentUser.uid) {
+          const userDoc = await getDoc(doc(db, 'usuario', currentUser.uid));
+          if (userDoc.exists()) {
+            const data = userDoc.data();
+            setNombreUsuario(data.nombre || 'Administrador');
+          }
         }
       } catch (error) {
-        console.error('Error al obtener nombre de usuario:', error);
+        console.error('Error al obtener nombre:', error);
       }
     };
-
     obtenerNombreUsuario();
   }, []);
 
-  const stats = [
-    { id: '1', icon: '🛒', label: 'Órdenes', value: 12 },
-    { id: '2', icon: '💸', label: 'Gastado', value: '$450' },
-    { id: '3', icon: '⭐', label: 'Categorías', value: 3 },
-  ]
+  // ESTADÍSTICAS EN TIEMPO REAL POR USUARIO (solo sus tiendas)
+  useEffect(() => {
+    let unsubVentas, unsubProductos, unsubOrdenes;
 
-  // ← Cambiado: Tercer quick a "Órdenes" (icon 📦, key 'orders')
-  const quick = [
+    const cargarStats = async () => {
+      const currentUser = auth.currentUser;
+      if (!currentUser?.uid) {
+        setLoadingStats(false);
+        return;
+      }
+
+      try {
+        const userDoc = await getDoc(doc(db, 'usuario', currentUser.uid));
+        if (!userDoc.exists() || userDoc.data().rol !== 'Administrador') {
+          setStats(prev => [
+            { ...prev[0], value: 0 },
+            { ...prev[1], value: '$0.00' },
+            { ...prev[2], value: 0 },
+          ]);
+          setLoadingStats(false);
+          return;
+        }
+
+        const tiendasUsuario = userDoc.data().tiendas || [];
+        if (tiendasUsuario.length === 0) {
+          setStats(prev => [
+            { ...prev[0], value: 0 },
+            { ...prev[1], value: '$0.00' },
+            { ...prev[2], value: 0 },
+          ]);
+          setLoadingStats(false);
+          return;
+        }
+
+        // 1. VENTAS (ganancias reales)
+        const qVentas = query(
+          collection(db, 'ventas'),
+          where('tiendaId', 'in', tiendasUsuario)
+        );
+
+        unsubVentas = onSnapshot(qVentas, (snapshot) => {
+          const ventas = snapshot.docs.map(d => d.data());
+          const ganancias = ventas.reduce((sum, v) => sum + (v.precio * v.cantidad), 0);
+
+          setStats(prev => [
+            prev[0],
+            { ...prev[1], value: `C$${ganancias.toFixed(2)}` }, // En córdobas
+            prev[2],
+          ]);
+        });
+
+        // 2. PRODUCTOS SIN STOCK
+        const qSinStock = query(
+          collection(db, 'productos'),
+          where('tiendaId', 'in', tiendasUsuario),
+          where('stock', '<=', 0)
+        );
+
+        unsubProductos = onSnapshot(qSinStock, (snapshot) => {
+          setStats(prev => [
+            prev[0],
+            prev[1],
+            { ...prev[2], value: snapshot.size },
+          ]);
+        });
+
+        // 3. ÓRDENES (que tienen productos de tus tiendas)
+        unsubOrdenes = onSnapshot(collection(db, 'órdenes'), (snapshot) => {
+          let ordenesTotales = 0;
+          snapshot.docs.forEach(doc => {
+            const productos = doc.data().productos || [];
+            const tieneMiTienda = productos.some(p => 
+              p.tiendaId && tiendasUsuario.includes(p.tiendaId)
+            );
+            if (tieneMiTienda) ordenesTotales++;
+          });
+
+          setStats(prev => [
+            { ...prev[0], value: ordenesTotales },
+            prev[1],
+            prev[2],
+          ]);
+          setLoadingStats(false);
+        });
+
+      } catch (error) {
+        console.error('Error cargando estadísticas:', error);
+        Alert.alert('Error', 'No se pudieron cargar tus datos');
+        setLoadingStats(false);
+      }
+    };
+
+    cargarStats();
+
+    return () => {
+      unsubVentas?.();
+      unsubProductos?.();
+      unsubOrdenes?.();
+    };
+  }, []);
+
+ const quick = [
     { id: 'q1', icon: '🛍️', label: 'Mis Órdenes', key: 'orders' },
     { id: 'q2', icon: '💖', label: 'Favoritos', key: 'favorites' },
-    { id: 'q3', icon: '📦', label: 'Órdenes', key: 'orders' },  // ← Nuevo: Órdenes para admin
+    { id: 'q3', icon: '📦', label: 'Gestión Órdenes', key: 'orders' },
     { id: 'q4', icon: '💳', label: 'Métodos de Pago', key: 'payments' },
-  ]
+  ];
 
   const recent = [
-    { id: 'r1', title: 'Pedido #452 - Entregado', subtitle: 'Hoy · 09:12' },
-    { id: 'r2', title: 'Nuevo producto: Camisa X', subtitle: 'Ayer · 18:03' },
-    { id: 'r3', title: 'Usuario registrado', subtitle: 'Ayer · 11:45' },
-  ]
+    { id: 'r1', title: 'Nueva venta en tu tienda', subtitle: 'Hace 3 min' },
+    { id: 'r2', title: 'Producto agotado', subtitle: 'Hace 1 hora' },
+    { id: 'r3', title: 'Orden entregada', subtitle: 'Hoy · 10:45' },
+  ];
 
-  // ← Actualizado: Navega a 'GestionÓrdenes' si key 'orders'
   const onQuick = (k) => {
-    console.log('Ir a', k);
     if (k === 'orders') {
       navigation.navigate('GestionÓrdenes');
     }
-    // ← Agrega más navegación según necesites (e.g., if k === 'favorites' ...)
-  }
+  };
 
   const handleLogout = () => {
     Alert.alert(
@@ -83,15 +180,11 @@ export default function CRUDAdmon() {
         {
           text: 'Cerrar Sesión',
           style: 'destructive',
-          onPress: async () => {
-            try {
-              navigation.reset({
-                index: 0,
-                routes: [{ name: 'Login' }],
-              });
-            } catch (error) {
-              console.error('Error al cerrar sesión:', error);
-            }
+          onPress: () => {
+            navigation.reset({
+              index: 0,
+              routes: [{ name: 'Login' }],
+            });
           },
         },
       ]
@@ -103,21 +196,28 @@ export default function CRUDAdmon() {
       <StatusBar barStyle="light-content" backgroundColor="#2fb26b" />
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.greet}>¡Hola, {nombreUsuario}! 👋</Text>
-          <Text style={styles.welcome}>Bienvenido a ZendyMarket</Text>
+          <Text style={styles.greet}>¡Hola, {nombreUsuario}! </Text>
+          <Text style={styles.welcome}>ZendyMarket Nicaragua</Text>
         </View>
 
         <View style={styles.cardSection}>
           <Text style={styles.sectionTitle}>Tu Actividad</Text>
-          <View style={styles.statsRow}>
-            {stats.map(s => (
-              <View key={s.id} style={styles.statCard}>
-                <Text style={styles.statIcon}>{s.icon}</Text>
-                <Text style={styles.statValue}>{s.value}</Text>
-                <Text style={styles.statLabel}>{s.label}</Text>
-              </View>
-            ))}
-          </View>
+          {loadingStats ? (
+            <View style={styles.loadingStats}>
+              <ActivityIndicator size="small" color="#007bff" />
+              <Text style={styles.loadingText}>Cargando tus datos...</Text>
+            </View>
+          ) : (
+            <View style={styles.statsRow}>
+              {stats.map(s => (
+                <View key={s.id} style={styles.statCard}>
+                  <Text style={styles.statIcon}>{s.icon}</Text>
+                  <Text style={styles.statValue}>{s.value}</Text>
+                  <Text style={styles.statLabel}>{s.label}</Text>
+                </View>
+              ))}
+            </View>
+          )}
         </View>
 
         <View style={styles.cardSection}>
@@ -140,7 +240,7 @@ export default function CRUDAdmon() {
         </View>
 
         <View style={styles.cardSection}>
-          <Text style={styles.sectionTitle}>Órdenes Recientes</Text>
+          <Text style={styles.sectionTitle}>Actividad Reciente</Text>
           <FlatList
             data={recent}
             keyExtractor={(i) => i.id}
@@ -158,6 +258,7 @@ export default function CRUDAdmon() {
             )}
           />
         </View>
+
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Text style={styles.logoutText}>Cerrar Sesión</Text>
         </TouchableOpacity>
@@ -168,9 +269,7 @@ export default function CRUDAdmon() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#f2f4f6' },
-  container: {
-    paddingBottom: 24,
-  },
+  container: { paddingBottom: 30 },
   header: {
     backgroundColor: '#26cdd3ff',
     paddingTop: 18,
@@ -182,102 +281,92 @@ const styles = StyleSheet.create({
   },
   greet: { color: '#fff', fontSize: 26, fontWeight: '700' },
   welcome: { color: '#e9f7ee', fontSize: 14, marginTop: 6 },
-
-  cardSection: {
-    paddingHorizontal: 16,
-    marginTop: 8,
-  },
+  cardSection: { paddingHorizontal: 16, marginTop: 8 },
   sectionTitle: {
     fontSize: 16,
     color: '#213a5a',
     fontWeight: '700',
     marginBottom: 10,
   },
-
-  statsRow: {
+  loadingStats: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
   },
+  loadingText: {
+    marginLeft: 10,
+    color: '#666',
+    fontSize: 14,
+  },
+  statsRow: { flexDirection: 'row', justifyContent: 'space-between' },
   statCard: {
     flex: 1,
     backgroundColor: '#fff',
     marginHorizontal: 5,
-    paddingVertical: 14,
+    paddingVertical: 16,
     paddingHorizontal: 10,
     borderRadius: 12,
     alignItems: 'center',
-    elevation: 3,
+    elevation: 4,
     shadowColor: '#000',
-    shadowOpacity: 0.06,
+    shadowOpacity: 0.1,
     shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 6,
+    shadowRadius: 8,
   },
-  statIcon: { fontSize: 22, marginBottom: 6 },
-  statValue: { fontSize: 18, fontWeight: '700', color: '#0b2545' },
+  statIcon: { fontSize: 26, marginBottom: 8 },
+  statValue: { fontSize: 20, fontWeight: '700', color: '#0b2545' },
   statLabel: { fontSize: 12, color: '#6c7a89', marginTop: 4 },
-
-  quickGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-  },
+  quickGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
   quickCard: {
     width: '48%',
     backgroundColor: '#fff',
     borderRadius: 12,
-    paddingVertical: 18,
+    paddingVertical: 20,
     paddingHorizontal: 10,
     marginBottom: 12,
     alignItems: 'center',
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOpacity: 0.06,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 6,
+    elevation: 4,
   },
   quickIconWrap: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     backgroundColor: '#f1fbf3',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 10,
   },
-  quickIcon: { fontSize: 24 },
+  quickIcon: { fontSize: 26 },
   quickLabel: { fontSize: 14, color: '#213a5a', fontWeight: '600', textAlign: 'center' },
-
   recentItem: {
     backgroundColor: '#fff',
     borderRadius: 12,
-    padding: 12,
+    padding: 14,
     marginBottom: 10,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     elevation: 2,
-    shadowColor: '#000',
-    shadowOpacity: 0.04,
-    shadowOffset: { width: 0, height: 1 },
-    shadowRadius: 4,
   },
   recentTitle: { fontSize: 14, fontWeight: '600', color: '#142b44' },
   recentSub: { fontSize: 12, color: '#7b8a98', marginTop: 4 },
-
   recentBtn: {
     backgroundColor: '#0b74ff',
-    paddingVertical: 6,
-    paddingHorizontal: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
     borderRadius: 8,
   },
-  recentBtnText: { color: '#fff', fontWeight: '600' },
+  recentBtnText: { color: '#fff', fontWeight: '600', fontSize: 12 },
   logoutButton: {
     backgroundColor: '#ff4444',
-    paddingVertical: 12,
+    paddingVertical: 14,
     paddingHorizontal: 20,
-    borderRadius: 8,
+    borderRadius: 10,
     alignItems: 'center',
-    marginTop: 10,
+    marginTop: 20,
+    marginHorizontal: 16,
+    elevation: 3,
   },
-  logoutText: { color: '#fff', fontWeight: '600' },
+  logoutText: { color: '#fff', fontWeight: '700', fontSize: 16 },
 });
