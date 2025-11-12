@@ -224,8 +224,11 @@ function StackLogin() {
             <StackNav.Screen name="RegistrarUsuarios" component={RegistrarUsuarios} />
             <StackNav.Screen name="Checkout" component={CheckoutScreen} />
             <StackNav.Screen name="GestionÓrdenes" component={GestionÓrdenes} />
+            <StackNav.Screen name="DetalleProductoScreen" component={DetalleProductoScreen} />
+
         </StackNav.Navigator>
     );
+    
 }
 
 export default function Navegacion() {

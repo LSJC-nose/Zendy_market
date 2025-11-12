@@ -1,4 +1,3 @@
-// src/Screens/vistaProductos.js
 import React, { useEffect, useState, useMemo } from 'react';
 import {
   Text,
