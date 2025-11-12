@@ -9,10 +9,10 @@ import {
   ActivityIndicator,
   Image,
   Dimensions,
+  TouchableOpacity
 } from 'react-native';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useNavigation } from '@react-navigation/native';
-import Producto from '../Componentes/Productos';
 import { db } from '../database/firebaseConfig';
 import { collection, onSnapshot, getDocs } from 'firebase/firestore';
 
@@ -44,7 +44,7 @@ export default function OfertasScreen() {
 
         const precioOriginal = parseFloat(data.precio);
         const stockActual = data.stock;
-//formyla de oferta 25% para stock >30
+        //formyla de oferta 25% para stock >30
         if (stockActual > 30) {
           ofertas.push({
             id,
@@ -79,7 +79,7 @@ export default function OfertasScreen() {
     <View style={styles.header}>
       <Text style={styles.titulo}>OFERTAS POR ALTO INVENTARIO</Text>
       <Text style={styles.subtitulo}>
-        {totalOfertas > 0 
+        {totalOfertas > 0
           ? `${totalOfertas} productos con 25% OFF automático`
           : 'No hay ofertas activas'}
       </Text>
@@ -95,7 +95,7 @@ export default function OfertasScreen() {
       />
       <Text style={styles.emptyTitle}>Sin ofertas</Text>
       <Text style={styles.emptyText}>
-        {searchText 
+        {searchText
           ? 'No se encontraron ofertas'
           : 'Ningún producto supera las 30 unidades en stock'}
       </Text>
@@ -144,54 +144,26 @@ export default function OfertasScreen() {
           const prod = obtenerProductoCompleto(p.nombre);
 
           return (
-            <View style={styles.tarjeta}>
-              {/* Cinta decorativa 25% OFF */}
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>25% OFF</Text>
-              </View>
-
-              <Producto
-                image={{ uri: p.imagen } || require('../../IMAGENES/ows.png')}
-                precio={
-                  <View style={{ alignItems: 'center' }}>
-                    <Text style={{
-                      fontSize: 13,
-                      color: '#999',
-                      textDecorationLine: 'line-through',
-                      marginBottom: 2
-                    }}>
-                      C${p.precioOriginal}
-                    </Text>
-                    <Text style={{
-                      fontSize: 19,
-                      fontWeight: 'bold',
-                      color: '#ff4d4d'
-                    }}>
-                      C${p.precio}
-                    </Text>
+            <TouchableOpacity style={styles.tarjeta} onPress={() => navigation.navigate('DetalleProducto', {
+              producto: { ...prod, precio: p.precio, image: { uri: p.imagen } }
+            })}>
+              <View>
+                <View style={styles.contenedor_imagen}>
+                  <Image source={{ uri: p.imagen }} style={styles.imagen} />
+                  <View style={styles.badge}>
+                    <Text style={styles.badgeText}>25% OFF</Text>
                   </View>
-                }
-                descripcion={p.nombre}
-                hora_mes={`${p.stock} und en stock`}
-                fondoColor="#ff4d4d"
-                onPress={() => navigation.navigate('DetalleProducto', {
-                  producto: {
-                    ...prod,
-                    image: { uri: p.imagen || prod.imagen },
-                    descripcion: p.nombre,
-                    precio: p.precio,
-                    rating: prod.rating || 4.5,
-                  }
-                })}
-                producto={{
-                  ...prod,
-                  id: prod.id || p.id,
-                  precio: p.precio,
-                  descripcion: p.nombre,
-                  image: { uri: p.imagen || prod.imagen }
-                }}
-              />
-            </View>
+                </View>
+                <View style={styles.info}>
+                  <Text style={styles.descripcion} numberOfLines={2}>{p.nombre}</Text>
+                  <View style={styles.precioContainer}>
+                    <Text style={styles.precioOriginal}>C${p.precioOriginal}</Text>
+                    <Text style={styles.precioDescuento}>C${p.precio}</Text>
+                  </View>
+                  <Text style={styles.stockText}>{`${p.stock} und en stock`}</Text>
+                </View>
+              </View>
+            </TouchableOpacity>
           );
         }}
       />
@@ -205,17 +177,17 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8f9fb',
   },
 
-  loadingContainer: { 
-    flex: 1, 
-    justifyContent: 'center', 
-    alignItems: 'center', 
-    backgroundColor: '#f8f9fb' 
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f8f9fb'
   },
-  loadingText: { 
-    marginTop: 20, 
-    fontSize: 18, 
-    color: '#ff4d4d', 
-    fontWeight: '700' 
+  loadingText: {
+    marginTop: 20,
+    fontSize: 18,
+    color: '#ff4d4d',
+    fontWeight: '700'
   },
 
   contenedor_buscador: {
@@ -292,6 +264,47 @@ const styles = StyleSheet.create({
     elevation: 3,
     overflow: 'hidden',
   },
+  contenedor_imagen: {
+    width: '100%',
+    height: 150,
+    borderTopLeftRadius: 18,
+    borderTopRightRadius: 18,
+    overflow: 'hidden',
+  },
+  imagen: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  info: {
+    padding: 12,
+  },
+  descripcion: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 8,
+  },
+  precioContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  precioOriginal: {
+    fontSize: 13,
+    color: '#999',
+    textDecorationLine: 'line-through',
+    marginRight: 8,
+  },
+  precioDescuento: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#ff4d4d',
+  },
+  stockText: {
+    fontSize: 12,
+    color: '#888',
+  },
 
   // Cinta de oferta
   badge: {
@@ -321,22 +334,22 @@ const styles = StyleSheet.create({
     paddingTop: 100,
     backgroundColor: '#f8f9fb',
   },
-  emptyImage: { 
-    width: 130, 
-    height: 130, 
-    marginBottom: 20, 
-    opacity: 0.8 
+  emptyImage: {
+    width: 130,
+    height: 130,
+    marginBottom: 20,
+    opacity: 0.8
   },
-  emptyTitle: { 
-    fontSize: 28, 
-    fontWeight: 'bold', 
-    color: '#ff6b81', 
-    marginBottom: 8 
+  emptyTitle: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#ff6b81',
+    marginBottom: 8
   },
-  emptyText: { 
-    fontSize: 15, 
-    color: '#888', 
-    textAlign: 'center', 
-    lineHeight: 22 
+  emptyText: {
+    fontSize: 15,
+    color: '#888',
+    textAlign: 'center',
+    lineHeight: 22
   },
 });
