@@ -19,48 +19,83 @@ const LoginTienda = ({ onLoginSuccess }) => {
   const navigation = useNavigation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [errors, setErrors] = useState({ email: '', password: '' });
 
   const acceder = async () => {
-    if (!email.trim() || !password.trim()) {
-      Alert.alert('Campos vacíos', 'Por favor ingrese su correo y contraseña.');
+    // Validar campos usando una función lambda (arrow function)
+    /*
+    const validateFields = () => {
+      
+      const validators = {
+        email: (v) => {
+          if (!v || !v.trim()) return 'Correo requerido';
+          const re = /^\S+@\S+\.\S+$/;
+          return re.test(v.trim()) ? '' : 'Correo inválido';
+        },
+        password: (v) => {
+          if (!v || !v.trim()) return 'Contraseña requerida';
+          return v.trim().length >= 6 ? '' : 'La contraseña debe tener al menos 6 caracteres';
+        }
+      };
+
+      const newErrors = {
+        email: validators.email(email),
+        password: validators.password(password),
+      };
+      setErrors(newErrors);
+      return !newErrors.email && !newErrors.password;
+    };
+
+    if (!validateFields()) {
+      Alert.alert('Errores en el formulario', 'Por favor corrige los campos resaltados.');
       return;
     }
-    try {
-      //autenticación del usuario
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
+*/
+    const datosValidados = await validarDatos({ password, email, });
 
-      // Si inició sesión correctamente, asegurarnos de marcar que NO es modo anónimo
+   
+    if (datosValidados) {
+
       try {
-        await AsyncStorage.setItem('isAnonymous', 'false');
-      } catch (e) {
-        console.error('Error almacenando isAnonymous:', e);
+        //autenticación del usuario
+        setLoading(true);
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        // Si inició sesión correctamente, asegurarnos de marcar que NO es modo anónimo
+        try {
+          await AsyncStorage.setItem('isAnonymous', 'false');
+        } catch (e) {
+          console.error('Error almacenando isAnonymous:', e);
+        }
+
+        //Consulta a la colección usuario
+        const q = query(
+          collection(db, 'usuario'), where('correo', '==', email.trim())
+        );
+        const querySnapshot = await getDocs(q);
+        let rol = "";
+        querySnapshot.forEach((doc) => {
+          rol = doc.data().rol;
+        });
+        //finaliza la consulta
+
+        //Verificación del rol para la navegación 
+
+        if (rol === "Cliente")
+          navigation.replace('MyTabsCliente');// ir a la nav del cliente
+
+        else if (rol === "Administrador")
+          navigation.replace('MyTabsAdmon');
+
+        else if (rol === "SuperAdministrador")
+          navigation.replace('MyTabsSuperAdmon');
+
+      } catch (error) {
+        Alert.alert("Error", "Correo o contraseña incorrectos");
+      } finally {
+        setLoading(false);
       }
-
-      //Consulta a la colección usuario
-      const q = query(
-        collection(db, 'usuario'), where('correo', '==', email.trim())
-      );
-      const querySnapshot = await getDocs(q);
-      let rol = "";
-      querySnapshot.forEach((doc) => {
-        rol = doc.data().rol;
-      });
-      //finaliza la consulta
-
-      //Verificación del rol para la navegación 
-
-      if (rol === "Cliente")
-        navigation.replace('MyTabsCliente');// ir a la nav del cliente
-
-      else if (rol === "Administrador")
-        navigation.replace('MyTabsAdmon');
-
-      else if (rol === "SuperAdministrador")
-        navigation.replace('MyTabsSuperAdmon');
-
-    } catch (error) {
-      Alert.alert("Error", "Correo o contraseña incorrectos");
     }
   };
 
@@ -73,6 +108,29 @@ const LoginTienda = ({ onLoginSuccess }) => {
     }
     // Navegar a la vista de cliente en modo anónimo
     navigation.navigate('MyTabsCliente', { anonymous: true });
+  };
+
+  const validarDatos = async (datos) => {
+    try {
+      const response = await fetch("https://wkvha4myxi.execute-api.us-east-1.amazonaws.com/validarlogin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(datos),
+      });
+
+      const resultado = await response.json();
+
+      if (resultado.success) {
+        return resultado.data; // Datos limpios y validados
+      } else {
+        Alert.alert("Error de validación", resultado.errores.join("\n"));
+        return null;
+      }
+    } catch (error) {
+      console.error("Error al validar con Lambda:", error);
+      Alert.alert("Error", "No se pudo validar la información con el servidor.");
+      return null;
+    }
   };
 
 
@@ -166,7 +224,7 @@ const LoginTienda = ({ onLoginSuccess }) => {
         >
           Continuar sin cuenta
         </Text>
-       
+
       </Animated.View>
     </View>
 

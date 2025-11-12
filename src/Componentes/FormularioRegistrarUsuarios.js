@@ -17,18 +17,25 @@ export default function FormularioRegistrarUsuarios({ cargarDatos }) {
     const auth = getAuth();
 
     const guardarUsuarios = async () => {
-        if (nombre && correo && contraseña && rol) {
-            try {
+        // Si falta algún campo, mostrar alerta y no continuar
+        if (!nombre.trim() || !correo.trim() || !contraseña.trim() || !rol) {
+            Alert.alert('Campos incompletos', 'Debe completar todos los campos.');
+            return;
+        }
 
-                const userCredential = await createUserWithEmailAndPassword(auth, correo, contraseña);
+        const datosValidados = await validarDatos({ nombre, correo, contraseña, rol });
+
+        if (datosValidados) {
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, datosValidados.correo, datosValidados.contraseña);
                 const user = userCredential.user;
 
                 await setDoc(doc(collection(db, "usuario"), user.uid), {
                     uid: user.uid,
-                    nombre: nombre,
-                    correo: correo,
-                    rol: rol,
-                    tiendas: [], 
+                    nombre: datosValidados.nombre,
+                    correo: datosValidados.correo,
+                    rol: datosValidados.rol,
+                    tiendas: [],
                     creadoEn: new Date()
                 });
 
@@ -38,23 +45,16 @@ export default function FormularioRegistrarUsuarios({ cargarDatos }) {
                 setContraseña("");
                 setRol("");
 
-                if (rol === "Cliente")
-                    navigation.navigate('MyTabsCliente', { anonymous: true });
-
-                else if (rol === "Administrador")
-                    navigation.replace('Suscripcion');
+                Alert.alert('Registro exitoso', 'El usuario ha sido registrado correctamente.');
+                navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
 
             } catch (error) {
-                //console.error("Error al registrar usuario:", error);
-                // Mostrar alerta específica si el correo ya está en uso
-                if (error && error.code === 'auth/email-already-in-use') {
+                if (error.code === 'auth/email-already-in-use') {
                     Alert.alert('Correo en uso', 'El correo electrónico ya está registrado. Por favor usa otro correo o inicia sesión.');
                 } else {
                     Alert.alert('Error', 'Hubo un error al registrar el usuario. Verifica los datos o intenta más tarde.');
                 }
             }
-        } else {
-            Alert.alert('Campos incompletos', 'Por favor, complete todos los campos.');
         }
     };
 
@@ -64,6 +64,29 @@ export default function FormularioRegistrarUsuarios({ cargarDatos }) {
         { valor: 'Cliente', label: 'Cliente' },
 
     ];
+
+    const validarDatos = async (datos) => {
+        try {
+            const response = await fetch("https://4u7nim5t20.execute-api.us-east-1.amazonaws.com/validarusuariozendy", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(datos),
+            });
+
+            const resultado = await response.json();
+
+            if (resultado.success) {
+                return resultado.data; // Datos limpios y validados
+            } else {
+                Alert.alert("Error de validación", resultado.errores.join("\n"));
+                return null;
+            }
+        } catch (error) {
+            console.error("Error al validar con Lambda:", error);
+            Alert.alert("Error", "No se pudo validar la información con el servidor.");
+            return null;
+        }
+    };
 
     return (
         <View style={styles.containerPrincipal}>
