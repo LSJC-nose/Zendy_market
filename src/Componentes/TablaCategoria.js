@@ -1,59 +1,63 @@
 // ../Componentes/TablaCategorias.js
 import React from 'react';
-import { View, Text, ScrollView, StyleSheet, Image, TouchableOpacity } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import {
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
+} from 'react-native';
 import BotonEliminarProducto from './BotonEliminarProducto';
 
 const TablaCategorias = ({ productos, eliminarProducto, editarProducto }) => {
-  const navigation = useNavigation(); // ← AÑADIDO
-
   return (
     <View style={styles.container}>
       <Text style={styles.titulo}>Lista de Categorías</Text>
+
+      {/* Encabezado */}
       <View style={[styles.fila, styles.encabezado]}>
         <Text style={[styles.celda, styles.textoEncabezado]}>Imagen</Text>
         <Text style={[styles.celda, styles.textoEncabezado]}>Nombre</Text>
         <Text style={[styles.celda, styles.textoEncabezado]}>Acciones</Text>
       </View>
-      <ScrollView style={styles.scroll}>
-        {productos.map((item) => (
-          <View key={item.id} style={styles.fila}>
-            <View style={styles.celda}>
-              {item.foto ? (
-                <Image source={{ uri: item.foto }} style={styles.imagen} />
-              ) : (
-                <Text style={styles.sinImagen}>Sin imagen</Text>
-              )}
-            </View>
-            <Text style={styles.celda}>{item.nombre}</Text>
-            <View style={styles.celdaAcciones}>
-              {/* VER PRODUCTOS */}
-              <TouchableOpacity
-                style={styles.botonVerProductos}
-                onPress={() => navigation.navigate('CategoriaSeleccionada', {
-                  categoriaId: item.id,
-                  nombre: item.nombre
-                })}
-              >
-                <Text style={styles.textoBoton}>Ver</Text>
-              </TouchableOpacity>
 
-              {/* EDITAR */}
-              <TouchableOpacity
-                style={styles.botonEditar}
-                onPress={() => editarProducto(item)}
-              >
-                <Text style={styles.textoBoton}>Editar</Text>
-              </TouchableOpacity>
+      {/* Scroll horizontal */}
+      <ScrollView horizontal style={styles.scrollHorizontal}>
+        <View>
+          {productos.map((item) => (
+            <View key={item.id} style={styles.fila}>
+              {/* IMAGEN */}
+              <View style={styles.celda}>
+                {item.foto ? (
+                  <Image source={{ uri: item.foto }} style={styles.imagen} />
+                ) : (
+                  <Text style={styles.sinImagen}>Sin imagen</Text>
+                )}
+              </View>
 
-              {/* ELIMINAR */}
-              <BotonEliminarProducto
-                id={item.id}
-                eliminarProducto={eliminarProducto}
-              />
+              {/* NOMBRE */}
+              <View style={styles.celda}>
+                <Text style={styles.textoCelda}>{item.nombre}</Text>
+              </View>
+
+              {/* ACCIONES: SOLO EDITAR Y ELIMINAR */}
+              <View style={styles.celdaAcciones}>
+                <TouchableOpacity
+                  style={styles.botonEditar}
+                  onPress={() => editarProducto(item)}
+                >
+                  <Text style={styles.textoBoton}>Editar</Text>
+                </TouchableOpacity>
+
+                <BotonEliminarProducto
+                  id={item.id}
+                  eliminarProducto={eliminarProducto}
+                />
+              </View>
             </View>
-          </View>
-        ))}
+          ))}
+        </View>
       </ScrollView>
     </View>
   );
@@ -74,33 +78,43 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: '#2c3e50',
   },
-  scroll: { maxHeight: 400 },
+  scrollHorizontal: {
+    maxHeight: 400,
+  },
   fila: {
     flexDirection: 'row',
-    paddingVertical: 10,
+    paddingVertical: 12,
     borderBottomWidth: 1,
     borderColor: '#eee',
-    alignItems: 'center',
+    minWidth: 450, // Ajustado: menos ancho sin "Ver"
   },
   encabezado: {
     backgroundColor: '#d48d7b',
-    paddingVertical: 8,
+    paddingVertical: 10,
+    minWidth: 450,
   },
   celda: {
-    flex: 1,
-    textAlign: 'center',
-    fontSize: 14,
+    width: 120,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 8,
   },
   celdaAcciones: {
-    flex: 1,
+    width: 180, // Reducido: solo 2 botones
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: 8,
+    gap: 10,
+    paddingHorizontal: 8,
   },
   textoEncabezado: {
     fontWeight: 'bold',
     color: '#fff',
     fontSize: 15,
+    textAlign: 'center',
+  },
+  textoCelda: {
+    fontSize: 14,
+    textAlign: 'center',
   },
   imagen: {
     width: 50,
@@ -111,16 +125,10 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#999',
   },
-  botonVerProductos: {
-    backgroundColor: '#3498db',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 6,
-  },
   botonEditar: {
     backgroundColor: '#f39c12',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
     borderRadius: 6,
   },
   textoBoton: {

@@ -245,6 +245,8 @@ return (
             }
             addToCart(producto);
             Alert.alert('¡Listo!', 'Producto agregado al carrito', [
+                      { text: 'Ok', style: 'cancel' },
+
               { text: 'Ver carrito', onPress: () => navigation.navigate('Carrito') }
             ]);
           }}
@@ -267,11 +269,11 @@ return (
             } catch (e) {
               console.error('Error leyendo isAnonymous:', e);
             }
-            navigation.navigate('Checkout', { selectedAddress, cartItems, producto });
+            navigation.navigate('CheckoutScreen');
           }}
         >
           <Text style={styles.buyBtnText}>Comprar Ahora</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> 
       </View>
 
       {/* MODAL DIRECCIONES */}

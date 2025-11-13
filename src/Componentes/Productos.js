@@ -159,6 +159,7 @@ const styles = StyleSheet.create({
     color: '#999',
   },
   precioDescuento: {
+    marginTop: 10,
     fontSize: 24,
     fontWeight: 'bold',
     color: '#4CAF50',

@@ -34,6 +34,31 @@ const Categoria = () => {
   const [categoriaId, setCategoriaId] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  // === VALIDACIÓN CON LAMBDA ===
+  const validarDatos = async (datos) => {
+    try {
+      const response = await fetch(
+        "https://hd3rm9xmr5.execute-api.us-east-1.amazonaws.com/validarcategoria",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(datos),
+        }
+      );
+      const resultado = await response.json();
+      if (resultado.success) {
+        return resultado.data;
+      } else {
+        Alert.alert("Error de validación", resultado.errores.join("\n"));
+        return null;
+      }
+    } catch (error) {
+      console.error("Error al validar con Lambda:", error);
+      Alert.alert("Error", "No se pudo conectar con el servidor.");
+      return null;
+    }
+  };
+
   // CARGAR CATEGORÍAS
   const cargarDatos = async () => {
     try {
@@ -53,11 +78,11 @@ const Categoria = () => {
     cargarDatos();
   }, []);
 
-    // ELIMINAR CATEGORÍA
+  // ELIMINAR CATEGORÍA
   const eliminarCategoria = async (id) => {
     setLoading(true);
     try {
-      await deleteDoc(doc(db, "categoria", id)); // ← CORREGIDO: "categoria"
+      await deleteDoc(doc(db, "categoria", id));
       Alert.alert("Éxito", "Categoría eliminada");
       cargarDatos();
     } catch (error) {
@@ -68,7 +93,7 @@ const Categoria = () => {
     }
   };
 
-  // EDITAR CATEGORÍA
+  // EDITAR CATEGORÍA (SOLO CARGA DATOS)
   const editarCategoria = (cat) => {
     setNuevaCategoria({
       nombre: cat.nombre || "",
@@ -91,13 +116,18 @@ const Categoria = () => {
     }
 
     setLoading(true);
+    const datosValidados = await validarDatos(nuevaCategoria);
+    if (!datosValidados) {
+      setLoading(false);
+      return;
+    }
+
     try {
       await addDoc(collection(db, "categoria"), {
-        nombre: nuevaCategoria.nombre,
-        foto: nuevaCategoria.foto,
+        nombre: datosValidados.nombre,
+        foto: datosValidados.foto,
         fechaCreacion: new Date(),
       });
-
       setNuevaCategoria({ nombre: "", foto: "" });
       Alert.alert("Éxito", "Categoría agregada");
       cargarDatos();
@@ -117,12 +147,17 @@ const Categoria = () => {
     }
 
     setLoading(true);
+    const datosValidados = await validarDatos(nuevaCategoria);
+    if (!datosValidados) {
+      setLoading(false);
+      return;
+    }
+
     try {
       await updateDoc(doc(db, "categoria", categoriaId), {
-        nombre: nuevaCategoria.nombre,
-        foto: nuevaCategoria.foto,
+        nombre: datosValidados.nombre,
+        foto: datosValidados.foto,
       });
-
       setNuevaCategoria({ nombre: "", foto: "" });
       setModoEdicion(false);
       setCategoriaId(null);
@@ -134,6 +169,13 @@ const Categoria = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // CANCELAR EDICIÓN
+  const cancelarEdicion = () => {
+    setNuevaCategoria({ nombre: "", foto: "" });
+    setModoEdicion(false);
+    setCategoriaId(null);
   };
 
   // SELECCIONAR IMAGEN
@@ -151,7 +193,7 @@ const Categoria = () => {
       base64: true,
     });
 
-    if (!resultado.canceled) {
+    if (!resultado.canceled && resultado.assets[0].base64) {
       setNuevaCategoria((prev) => ({
         ...prev,
         foto: `data:image/jpeg;base64,${resultado.assets[0].base64}`,
@@ -183,23 +225,32 @@ const Categoria = () => {
         <Text style={styles.mensajePreview}>La imagen se mostrará aquí</Text>
       )}
 
-      <Button
-        title={loading ? "Guardando..." : modoEdicion ? "Actualizar" : "Guardar"}
-        onPress={modoEdicion ? actualizarCategoria : guardarCategoria}
-        disabled={loading}
-        color={modoEdicion ? "#e67e22" : "#27ae60"}
-      />
+      <View style={styles.botonesContainer}>
+        <Button
+          title={loading ? "Procesando..." : modoEdicion ? "Actualizar" : "Guardar"}
+          onPress={modoEdicion ? actualizarCategoria : guardarCategoria}
+          disabled={loading}
+          color={modoEdicion ? "#e67e22" : "#27ae60"}
+        />
+        {modoEdicion && (
+          <View style={styles.botonCancelar}>
+            <Button title="Cancelar" onPress={cancelarEdicion} color="#95a5a6" />
+          </View>
+        )}
+      </View>
 
-      {/* TABLA */}
+      {/* TABLA CON SCROLL HORIZONTAL */}
       <View style={styles.tablaContainer}>
         {loading ? (
           <ActivityIndicator size="large" color="#3498db" />
         ) : (
-          <TablaCategorias
-            productos={categorias}
-            eliminarProducto={eliminarCategoria}
-            editarProducto={editarCategoria}
-          />
+          <ScrollView horizontal={false}>
+            <TablaCategorias
+              productos={categorias}
+              eliminarProducto={eliminarCategoria}
+              editarProducto={editarCategoria}
+            />
+          </ScrollView>
         )}
       </View>
     </ScrollView>
@@ -219,7 +270,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     color: "#2c3e50",
   },
-  input: {
+ handful: {
     borderWidth: 1,
     borderColor: "#ddd",
     padding: 12,
@@ -254,6 +305,12 @@ const styles = StyleSheet.create({
     color: "#777",
     marginBottom: 12,
     fontStyle: "italic",
+  },
+  botonesContainer: {
+    marginBottom: 20,
+  },
+  botonCancelar: {
+    marginTop: 8,
   },
   tablaContainer: {
     marginTop: 30,

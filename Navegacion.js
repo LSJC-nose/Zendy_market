@@ -70,6 +70,8 @@ function StackHomeCliente() {
             <StackNav.Screen name="Ofertas" component={Ofertas} />
             <StackNav.Screen name="DetalleProducto" component={DetalleProductoScreen} />
             <StackNav.Screen name="CategoriaSeleccionada" component={CategoriaSeleccionada} />
+            <StackNav.Screen name="CheckoutScreen" component={CheckoutScreen} />
+
             
         </StackNav.Navigator>
     );
