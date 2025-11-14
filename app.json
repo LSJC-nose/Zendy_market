@@ -1,11 +1,10 @@
 {
   "expo": {
-    "jsEngine": "hermes",
     "name": "ZendyMarket",
     "slug": "ZendyMarket",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/logo_zendy.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
@@ -13,9 +12,6 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "plugins": [
-      "expo-notifications"
-    ],
     "ios": {
       "supportsTablet": true
     },
@@ -30,6 +26,7 @@
           "channelId": "default"
         }
       }
+
     },
     "web": {
       "favicon": "./assets/logo_zendy.png"
@@ -37,8 +34,10 @@
     "extra": {
       "cli": {
         "appVersionSource": "manifest"
+      },
+      "eas": {
+        "projectId": "e835aca7-65d2-4716-bda3-55345b6b6ed6"
       }
-      
     },
     "owner": "santis"
   }
