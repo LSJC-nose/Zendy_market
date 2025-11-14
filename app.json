@@ -37,17 +37,8 @@
     "extra": {
       "cli": {
         "appVersionSource": "manifest"
-      },
-      "FIREBASE_API_KEY": "AIzaSyDl2lK_iawDRQQOdCPoWie80FgX1uUa1CE",
-      "FIREBASE_AUTH_DOMAIN": "zendymarket-4f2a2.firebaseapp.com",
-      "FIREBASE_PROJECT_ID": "zendymarket-4f2a2",
-      "FIREBASE_STORAGE_BUCKET": "zendymarket-4f2a2.firebasestorage.app",
-      "FIREBASE_MESSAGING_SENDER_ID": "569746253617",
-      "FIREBASE_APP_ID": "1:569746253617:web:7be870342b48e32dafb210",
-      "FIREBASE_MEASUREMENT_ID": "G-9Y2796T2DP",
-      "eas": {
-        "projectId": "fb3d823e-f019-4eef-9f33-94fdd9efdaf2"
       }
+      
     },
     "owner": "santis"
   }

@@ -5,6 +5,9 @@ export default ({ config }) => ({
    android: {
     package: process.env.ANDROID_PACKAGE || 'com.ZendyMarket.tuapp'
   },
+  eas: {
+    projectId: process.env.EAS_PROJECT_ID || 'fb3d823e-f019-4eef-9f33-94fdd9efdaf2'
+  },
   extra: {
     FIREBASE_API_KEY: process.env.FIREBASE_API_KEY,
     FIREBASE_AUTH_DOMAIN: process.env.FIREBASE_AUTH_DOMAIN,
