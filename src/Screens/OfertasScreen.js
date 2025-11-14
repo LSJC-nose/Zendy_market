@@ -143,9 +143,9 @@ export default function OfertasScreen() {
           const p = item;
           const prod = obtenerProductoCompleto(p.nombre);
 
-          return (
+            return (
             <TouchableOpacity style={styles.tarjeta} onPress={() => navigation.navigate('DetalleProducto', {
-              producto: { ...prod, precio: p.precio, image: { uri: p.imagen } }
+              producto: { ...prod, precio: p.precio, image: { uri: p.imagen }, descripcion: prod.descripcion || p.nombre || prod.nombre }
             })}>
               <View>
                 <View style={styles.contenedor_imagen}>

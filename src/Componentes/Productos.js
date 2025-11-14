@@ -4,7 +4,7 @@ import { View, Text, Image, StyleSheet, TouchableOpacity, Alert } from 'react-na
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import { useCart } from './Carrito';
 
-export default function Producto({
+export default function hasProducto({
   image,
   precio,
   descripcion,
@@ -20,11 +20,22 @@ export default function Producto({
   producto = null,
 }) {
   const { addToCart } = useCart();
+  const displayTitle = (producto && (producto.nombre || producto.descripcion)) || descripcion || '';
   const stockText = hora_mes || (producto && (producto.stock !== undefined && producto.stock !== null) ? `Stock: ${producto.stock}` : null);
   return (
     <TouchableOpacity style={styles.tarjeta} onPress={onPress} activeOpacity={0.7}>
       <View style={[styles.contenedor_imagen, { backgroundColor: fondoColor }]}>
         <Image source={image} style={styles.imagen} />
+        {/* Stock badge sobre la imagen */}
+        { (producto && (producto.stock !== undefined && producto.stock !== null)) || (typeof hora_mes === 'string' && hora_mes.match(/\d+/)) ? (
+          <View style={styles.stockBadge}>
+            <Text style={styles.stockBadgeText}>{
+              (producto && (producto.stock !== undefined && producto.stock !== null))
+                ? (producto.stock > 0 ? `Stock: ${producto.stock}` : 'Agotado')
+                : (hora_mes && hora_mes.match(/\d+/) ? `Stock: ${hora_mes.match(/\d+/)[0]}` : '')
+            }</Text>
+          </View>
+        ) : null}
         {/* Corazón como overlay sobre la imagen */}
         <TouchableOpacity
           onPress={(e) => {
@@ -72,13 +83,10 @@ export default function Producto({
             <Text style={styles.textoBadge}>¡Oferta! {oferta.descuento}% OFF</Text>
           </View>
         )}
-        <Text style={styles.descripcion} numberOfLines={2}>{descripcion}</Text>
+        <Text style={styles.descripcion} numberOfLines={2}>{displayTitle}</Text>
         {nombreTienda && (
           <Text style={styles.nombreTienda}>Tienda: {nombreTienda}</Text>
         )}
-
-        {/* Mostrar stock si viene en hora_mes o en el objeto producto */}
-        {stockText ? <Text style={styles.explora}>{stockText}</Text> : <Text style={styles.explora}>{explora}</Text>}
       </View>
     </TouchableOpacity>
   );
@@ -86,26 +94,32 @@ export default function Producto({
 
 const styles = StyleSheet.create({
   tarjeta: {
-    backgroundColor: '#ffffffff',
-    borderRadius: 14,
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
     minHeight: 260,
-    borderWidth: 1,
-    borderColor: '#e4e0e0ff',
+    borderWidth: 0,
+    // softer shadow
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 6,
     overflow: 'hidden',
     width: '100%',
-    padding: 8,
-    marginBottom: 12,
+    padding: 0,
+    marginBottom: 14,
   },
 
   contenedor_imagen: {
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
     width: '100%',
-    height: 140,
-    marginBottom: 10,
+    height: 160,
+    marginBottom: 6,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
+    backgroundColor: '#f4f6f6',
   },
   imagen: {
     width: '100%',
@@ -113,22 +127,23 @@ const styles = StyleSheet.create({
     resizeMode: 'cover',
   },
   info: {
-    paddingHorizontal: 6,
-    paddingBottom: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
     flex: 1,
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
   },
   precio: {
-    marginTop: -10,
-    marginLeft: 10,
-    margin: -2,
-    fontSize: 20,
-    fontWeight: 'bold',
+    marginTop: 4,
+    marginLeft: 0,
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#1f2937',
   },
   descripcion: {
-    marginLeft: 10,
-    fontSize: 14,
-    color: '#555',
+    marginTop: 6,
+    fontSize: 15,
+    color: '#374151',
+    fontWeight: '600',
   },
   mes_hora: {
     marginLeft: 10,
@@ -136,20 +151,22 @@ const styles = StyleSheet.create({
     color: '#999',
   },
   nombreTienda: {
-    marginLeft: 10,
+    marginTop: 8,
     fontSize: 12,
-    fontFamily: "Merriweather",
-    color: '#4A90E2',
-    fontWeight: '600',
+    fontFamily: 'Merriweather',
+    color: '#2563eb',
+    fontWeight: '700',
   },
   cora_pre: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    marginRight: 6,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 8,
   },
   precioContainer: {
     marginLeft: 3,
     margin: 6,
+    alignItems: 'flex-start',
   },
   precioOriginal: {
     marginTop: 2,
@@ -160,9 +177,9 @@ const styles = StyleSheet.create({
   },
   precioDescuento: {
     marginTop: 10,
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#4CAF50',
+    fontSize: 20,
+    fontWeight: '900',
+    color: '#16a34a',
   },
   badgeOferta: {
     backgroundColor: '#ed3946',
@@ -195,5 +212,20 @@ const styles = StyleSheet.create({
     zIndex: 10,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  stockBadge: {
+    position: 'absolute',
+    top: 8,
+    left: 8,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    zIndex: 11,
+  },
+  stockBadgeText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '700',
   },
 });

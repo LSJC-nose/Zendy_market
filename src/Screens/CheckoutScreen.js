@@ -62,6 +62,39 @@ const Checkout = () => {
   const [cvv, setCvv] = useState('');
   const [selectedMethod, setSelectedMethod] = useState('credit');
   
+  // Formateo y validación ligera de inputs de tarjeta
+  const handleCardNumberChange = (text) => {
+    // permitir solo dígitos y limitar a 16
+    const digits = text.replace(/\D/g, '').slice(0, 16);
+    const parts = [];
+    for (let i = 0; i < digits.length; i += 4) {
+      parts.push(digits.substring(i, i + 4));
+    }
+    setCardNumber(parts.join(' '));
+  };
+
+  const handleExpiryChange = (text) => {
+    // permitir solo dígitos y limitar a 4 (MMYY)
+    const digits = text.replace(/\D/g, '').slice(0, 4);
+    let month = digits.slice(0, 2);
+    const year = digits.slice(2);
+
+    if (month.length === 2) {
+      const m = parseInt(month, 10);
+      if (isNaN(m) || m < 1) month = '01';
+      else if (m > 12) month = '12';
+      else month = (m < 10 ? '0' + m : String(m));
+    }
+
+    const formatted = year.length ? `${month}/${year}` : month;
+    setExpiry(formatted);
+  };
+
+  const handleCvvChange = (text) => {
+    const digits = text.replace(/\D/g, '').slice(0, 4); // aceptar hasta 4 (Amex)
+    setCvv(digits);
+  };
+  
 
   // GUARDAR ORDEN EN FIRESTORE (usando estructura de ejemplo: colección 'órdenes')
   const guardarVenta = async () => {
@@ -86,6 +119,7 @@ const Checkout = () => {
     try {
       // Primero: verificar y actualizar stock de todos los productos en una sola transacción
       const productRefs = cartItems.map((item) => doc(db, 'productos', item.id));
+      const compraPrices = {}; // mapa idProducto -> precioCompra (para guardar en ventas)
 
       await runTransaction(db, async (transaction) => {
         for (let i = 0; i < cartItems.length; i++) {
@@ -102,6 +136,9 @@ const Checkout = () => {
             throw new Error(`Stock insuficiente para ${item.name}`);
           }
 
+          // Guardar precioCompra actual del producto para la venta
+          compraPrices[item.id] = prodSnap.data().precioCompra ?? 0;
+
           // Actualizar stock
           transaction.update(prodRef, { stock: stock - item.quantity });
         }
@@ -113,6 +150,7 @@ const Checkout = () => {
           metodoPago: selectedMethod,
           nombreProducto: item.name,
           precio: item.price,
+          precioCompra: compraPrices[item.id] ?? 0,
           cantidad: item.quantity,
           tiendaId: item.tiendaId,
           fecha: new Date(),
@@ -136,6 +174,7 @@ const Checkout = () => {
         metodoEnvio: 'Por seleccionar',
         notas: 'Al lado de una casa amarilla',
         productos: productosArray,
+        metodoPago: selectedMethod,
         total: getTotalPrice().toString(),
       });
 
@@ -285,7 +324,7 @@ const Checkout = () => {
               placeholder="Número de tarjeta"
               keyboardType="numeric"
               value={cardNumber}
-              onChangeText={setCardNumber}
+              onChangeText={handleCardNumberChange}
             />
             <TextInput
               style={styles.input}
@@ -297,15 +336,16 @@ const Checkout = () => {
               <TextInput
                 style={[styles.input, styles.half]}
                 placeholder="Expira (MM/AA)"
+                keyboardType="numeric"
                 value={expiry}
-                onChangeText={setExpiry}
+                onChangeText={handleExpiryChange}
               />
               <TextInput
                 style={[styles.input, styles.half]}
                 placeholder="CVV"
                 keyboardType="numeric"
                 value={cvv}
-                onChangeText={setCvv}
+                onChangeText={handleCvvChange}
               />
             </View>
             <View style={styles.pagar}>

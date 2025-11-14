@@ -67,7 +67,7 @@ const CategoriaSeleccionada = () => {
           cora="heart"
           producto={{ ...item }}
           onFavoritoPress={() => {}}
-          onPress={() => navigation.navigate('DetalleProducto', { producto: { ...item, image: imageSource, descripcion: item.nombre, precio: parseFloat(item.precio) } })}
+          onPress={() => navigation.navigate('DetalleProducto', { producto: { ...item, image: imageSource, descripcion: item.descripcion || item.nombre, precio: parseFloat(item.precio) } })}
         />
       </View>
     );

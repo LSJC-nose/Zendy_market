@@ -135,7 +135,8 @@ export default function VistaProductos() {
                         producto: {
                           ...item,
                           image: imageSource,
-                          descripcion: item.nombre.trim(),
+                          nombre: item.nombre.trim(),
+                          descripcion: item.descripcion ,
                           precio: parseFloat(item.precio),
                           rating: item.rating || 4.5,
                         },

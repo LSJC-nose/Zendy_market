@@ -96,8 +96,8 @@ const TarjetaTienda = ({ tienda, eliminarTienda }) => {
     };
 
     const guardarProducto = async () => {
-        const { nombre, precio, precioCompra, stock, Categoria, foto } = productoForm;
-        if (!nombre || isNaN(precio) || isNaN(precioCompra) || isNaN(stock) || !Categoria || !foto || !tiendaSeleccionada?.id) {
+        const { nombre, descripcion, precio, precioCompra, stock, Categoria, foto } = productoForm;
+        if (!nombre || !descripcion || isNaN(precio) || isNaN(precioCompra) || isNaN(stock) || !Categoria || !foto || !tiendaSeleccionada?.id) {
             Alert.alert('Error', 'Por favor, complete todos los campos con valores válidos.');
             return;
         }
@@ -105,6 +105,7 @@ const TarjetaTienda = ({ tienda, eliminarTienda }) => {
         try {
             await addDoc(collection(db, 'productos'), {
                 nombre,
+                descripcion,
                 precio: parseFloat(precio),
                 precioCompra: parseFloat(precioCompra),
                 stock: parseFloat(stock),
@@ -113,7 +114,7 @@ const TarjetaTienda = ({ tienda, eliminarTienda }) => {
                 tiendaId: tiendaSeleccionada.id
             });
             cargarDatos();
-            setProductoForm({ nombre: '', precio: '', precioCompra: '', stock: '', Categoria: '', foto: '' });
+            setProductoForm({ nombre: '', descripcion: '', precio: '', precioCompra: '', stock: '', Categoria: '', foto: '' });
             setModalVisibleRegistro(false);
         } catch (error) {
             console.error('Error al registrar producto:', error);
@@ -124,8 +125,8 @@ const TarjetaTienda = ({ tienda, eliminarTienda }) => {
     };
 
     const actualizarProducto = async () => {
-        const { nombre, precio, precioCompra, stock, Categoria, foto } = productoForm;
-        if (!nombre || isNaN(precio) || isNaN(precioCompra) || isNaN(stock) || !Categoria || !foto) {
+        const { nombre, descripcion, precio, precioCompra, stock, Categoria, foto } = productoForm;
+        if (!nombre || !descripcion || isNaN(precio) || isNaN(precioCompra) || isNaN(stock) || !Categoria || !foto) {
             Alert.alert('Error', 'Por favor, complete todos los campos con valores válidos.');
             return;
         }
@@ -133,13 +134,14 @@ const TarjetaTienda = ({ tienda, eliminarTienda }) => {
         try {
             await updateDoc(doc(db, 'productos', productoId), {
                 nombre,
+                descripcion,
                 precio: parseFloat(precio),
                 precioCompra: parseFloat(precioCompra),
                 stock: parseFloat(stock),
                 Categoria,
                 imagen: foto
             });
-            setProductoForm({ nombre: '', precio: '', precioCompra: '', stock: '', Categoria: '', foto: '' });
+            setProductoForm({ nombre: '', descripcion: '', precio: '', precioCompra: '', stock: '', Categoria: '', foto: '' });
             setModoEdicion(false);
             setProductoId(null);
             cargarDatos();
@@ -155,6 +157,7 @@ const TarjetaTienda = ({ tienda, eliminarTienda }) => {
     const iniciarEdicionProducto = (producto) => {
         setProductoForm({
             nombre: producto.nombre,
+            descripcion: producto.descripcion,
             precio: producto.precio.toString(),
             precioCompra: producto.precioCompra ? producto.precioCompra.toString() : '',
             stock: producto.stock.toString(),
@@ -168,7 +171,7 @@ const TarjetaTienda = ({ tienda, eliminarTienda }) => {
     };
 
     const limpiarFormulario = () => {
-        setProductoForm({ nombre: '', precio: '', precioCompra: '', stock: '', Categoria: '', foto: '' });
+        setProductoForm({ nombre: '', descripcion: '', precio: '', precioCompra: '', stock: '', Categoria: '', foto: '' });
         setModoEdicion(false);
         setProductoId(null);
     };

@@ -11,13 +11,14 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';  // ← Instala si no: expo install @react-native-picker/picker
-import { db } from '../database/firebaseConfig.js';
-import { collection, onSnapshot, updateDoc, doc } from 'firebase/firestore';
+import { db, auth } from '../database/firebaseConfig.js';
+import { collection, onSnapshot, updateDoc, doc, getDoc } from 'firebase/firestore';
 import { useNavigation } from '@react-navigation/native';
 
 export default function GestionÓrdenes() {
   const navigation = useNavigation();
   const [órdenes, setÓrdenes] = useState([]);  // ← Lista de órdenes
+  const [tiendasUsuario, setTiendasUsuario] = useState([]); // tiendas del admin autenticado
   const [loading, setLoading] = useState(true);  // ← Loading
   const [showModal, setShowModal] = useState(false);  // ← Modal para update
   const [selectedOrder, setSelectedOrder] = useState(null);  // ← Orden seleccionada
@@ -26,20 +27,63 @@ export default function GestionÓrdenes() {
 
   // ← Cargar órdenes en tiempo real (onSnapshot para updates live)
   useEffect(() => {
-    const unsubscribe = onSnapshot(collection(db, 'órdenes'), (snapshot) => {
-      const data = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      setÓrdenes(data);
-      setLoading(false);
-    }, (error) => {
-      console.error('Error al cargar órdenes:', error);
-      Alert.alert('Error', 'No se pudieron cargar las órdenes.');
-      setLoading(false);
-    });
+    let unsubscribe = null;
 
-    return () => unsubscribe();  // ← Limpia listener al desmontar
+    const cargarOrdenesFiltradas = async () => {
+      try {
+        const currentUser = auth.currentUser;
+        if (!currentUser?.uid) {
+          setÓrdenes([]);
+          setLoading(false);
+          return;
+        }
+
+        const userDoc = await getDoc(doc(db, 'usuario', currentUser.uid));
+        if (!userDoc.exists() || userDoc.data().rol !== 'Administrador') {
+          // Si no es administrador, no mostramos órdenes aquí
+          setÓrdenes([]);
+          setLoading(false);
+          return;
+        }
+
+        const tiendas = userDoc.data().tiendas || [];
+        setTiendasUsuario(tiendas);
+        if (tiendasUsuario.length === 0) {
+          setÓrdenes([]);
+          setLoading(false);
+          return;
+        }
+
+        unsubscribe = onSnapshot(collection(db, 'órdenes'), (snapshot) => {
+          const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+
+          // Filtrar sólo órdenes que contienen productos de las tiendas del admin
+          const filtradas = data.filter(order => {
+            const productos = order.productos || [];
+            return productos.some(p => p.tiendaId && tiendas.includes(p.tiendaId));
+          });
+
+          setÓrdenes(filtradas);
+          setLoading(false);
+        }, (error) => {
+          console.error('Error al cargar órdenes:', error);
+          Alert.alert('Error', 'No se pudieron cargar las órdenes.');
+          setÓrdenes([]);
+          setLoading(false);
+        });
+      } catch (error) {
+        console.error('Error al cargar órdenes filtradas:', error);
+        Alert.alert('Error', 'No se pudieron cargar las órdenes.');
+        setÓrdenes([]);
+        setLoading(false);
+      }
+    };
+
+    cargarOrdenesFiltradas();
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
   }, []);
 
   // ← Abrir modal para editar orden
@@ -87,9 +131,25 @@ export default function GestionÓrdenes() {
         </Text>
       </View>
       {/* ← Removido userId ya que no existe en el esquema de DB */}
-      <Text style={styles.orderTotal}>Total: ${parseFloat(item.total || 0).toFixed(2)}</Text>
-      <Text style={styles.orderEnvio}>Envío: {item.metodoEnvio || 'Por seleccionar'}</Text>
-      <Text style={styles.orderDate}>Fecha: {item.fechaCreacion?.toDate().toLocaleDateString('es-ES') || 'Reciente'}</Text>
+      {/* Mostrar sólo los productos pertenecientes a las tiendas del admin y su subtotal */}
+      {(() => {
+        const productos = item.productos || [];
+        const misProductos = productos.filter(p => p.tiendaId && tiendasUsuario.includes(p.tiendaId));
+        const subtotal = misProductos.reduce((s, p) => {
+          const precio = parseFloat(p.precioUnitario ?? p.precio ?? 0) || 0;
+          const cantidad = parseFloat(p.cantidad ?? p.quantity ?? 0) || 0;
+          return s + (precio * cantidad);
+        }, 0);
+
+        return (
+          <>
+            <Text style={styles.orderTotal}>Tu parte: ${subtotal.toFixed(2)}</Text>
+            <Text style={styles.orderEnvio}>Envío: {item.metodoEnvio || 'Por seleccionar'}</Text>
+            <Text style={styles.orderSubNote}>Orden total: ${parseFloat(item.total || 0).toFixed(2)}</Text>
+            <Text style={styles.orderDate}>Fecha: {item.fechaCreacion?.toDate().toLocaleDateString('es-ES') || 'Reciente'}</Text>
+          </>
+        );
+      })()}
     </TouchableOpacity>
   );
 

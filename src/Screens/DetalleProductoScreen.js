@@ -6,11 +6,13 @@ import {
 import { useRoute, useNavigation } from '@react-navigation/native';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import { db, auth } from '../database/firebaseConfig.js';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { collection, getDocs, addDoc, updateDoc, doc, writeBatch, getDoc } from 'firebase/firestore';
 import ModalCalificacion from '../Componentes/ModalCalificacion';
+import ModalVendidoPor from '../Componentes/ModalVendidoPor.js';
 import { useCart } from '../Componentes/Carrito.js';
 import CheckoutScreen from './CheckoutScreen'; 
 
@@ -30,6 +32,8 @@ export default function DetalleProductoScreen() {
   const [loading, setLoading] = useState(false);
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [selectedRating, setSelectedRating] = useState(null);
+  const [selectedTiendaId, setSelectedTiendaId] = useState(null);
+  const [modalVisible, setModalVisible] = useState(false);
 
   const currentUser = auth.currentUser;
 
@@ -72,7 +76,7 @@ const cargarDirecciones = async () => {
   }, [currentUser]);
 
   const getImagen = () => producto?.image || { uri: 'https://via.placeholder.com/300' };
-  const getNombre = () => producto?.descripcion || producto?.nombre || 'Producto';
+  const getNombre = () => producto?.nombre || producto?.nombre || 'Producto';
   const getPrecio = () => producto?.precio?.toString() || '0';
   const getRating = () => producto?.rating || 4.8;
 
@@ -82,6 +86,7 @@ const cargarDirecciones = async () => {
   ));
 
   const nombre = getNombre();
+  const descripcion = producto?.descripcion || 'Descripción no disponible';
   const precio = getPrecio();
   const imageSource = getImagen();
   const fullDescription = producto?.descripcion || "Creado para la cancha pero llevado a las calles. Estilo urbano con rendimiento profesional.";
@@ -155,18 +160,25 @@ const realizarCompra = async () => {
     </TouchableOpacity>
   );
 
-return (
+  // Mostrar 'Agotado' si el stock es 0 (prefiere stock del producto, luego de la tienda)
+  const stockValue = producto?.stock ?? tiendaInfo?.Stock;
+  const stockDisplay = stockValue === 0 ? 'Agotado' : (stockValue == null ? 'N/A' : `Stock: ${stockValue}`);
+
+  return (
     <View style={styles.container}>
       {/* HEADER ELEGANTE */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <AntDesign name="arrowleft" size={26} color="#fff" />
+            <Ionicons name="arrow-back-outline" size={24} color="black" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Detalle del Producto</Text>
         <View style={{ width: 40 }} />
       </View>
-
+     
       <ScrollView showsVerticalScrollIndicator={false} style={styles.scrollContent}>
+         <Text style={styles.descriptionText}>
+              {`  ${descripcion ?? 'Sin descripción disponible'}`}
+            </Text>
         {/* IMAGEN HERO */}
         <View style={styles.heroImageContainer}>
           <Image source={imageSource} style={styles.heroImage} resizeMode="cover" />
@@ -183,43 +195,39 @@ return (
           </TouchableOpacity>
 
           <Text style={styles.productName}>{nombre}</Text>
-          <Text style={styles.productPrice}>${precio}</Text>
+          <Text style={styles.productPrice}>C${precio}</Text>
 
           {/* TIENDA */}
           {tiendaInfo && (
-            <TouchableOpacity style={styles.tiendaCard}>
+            <TouchableOpacity style={styles.tiendaCard}
+            onPress={() => { setSelectedTiendaId(tiendaInfo.id); setModalVisible(true); }}
+            >
               <Image source={{ uri: tiendaInfo.foto }} style={styles.tiendaLogo} />
               <View>
                 <Text style={styles.tiendaLabel}>Vendido por</Text>
                 <Text style={styles.tiendaName}>{tiendaInfo.nombre}</Text>
               </View>
-              <AntDesign name="right" size={18} color="#666" />
+              <AntDesign style={{ marginLeft: 'auto' }}name="right" size={19} color="#666" />
             </TouchableOpacity>
           )}
 
-          {/* DESCRIPCIÓN */}
-          <View style={styles.descriptionCard}>
-            <Text style={styles.descriptionTitle}>Descripción</Text>
-            <Text style={styles.descriptionText}>
-              {showFullDescription ? fullDescription : shortDescription}
-            </Text>
-            {/* Mostrar stock del producto si está disponible, si no usar stock de tienda (antiguo) o 'N/A' */}
-            <Text style={styles.tiendaName}>
-              {`Stock: ${producto?.stock ?? tiendaInfo?.Stock ?? 'N/A'}`}
-            </Text>
-            <TouchableOpacity onPress={() => setShowFullDescription(!showFullDescription)}>
-              <Text style={styles.readMoreText}>
-                {showFullDescription ? 'Mostrar menos' : 'Leer más'}
-              </Text>
-            </TouchableOpacity>
-          </View>
+           <Text style={styles.tiendaName}>{stockDisplay}</Text>
+
+          {/* Modal que muestra el/los usuario(s) dueño(s) de la tienda seleccionada */}
+          <ModalVendidoPor
+            visible={modalVisible}
+            setModalVisible={setModalVisible}
+            onClose={() => setModalVisible(false)}
+            tiendaId={selectedTiendaId}
+          />
+
           
 
           {/* DIRECCIÓN */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Entrega a</Text>
             <TouchableOpacity style={styles.addressCard} onPress={() => setShowAddressModal(true)}>
-              <FontAwesome name="map-marker" size={18} color="#FF6B35" />
+              <FontAwesome name="map-marker" size={18} color="#9e9e9eff" />
               <View style={styles.addressInfo}>
                 <Text style={styles.addressMain}>
                   {selectedAddress ? `${selectedAddress.calle}, ${selectedAddress.ciudad}` : 'Selecciona dirección'}
@@ -327,11 +335,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 50,
+    paddingTop: 25,
     paddingBottom: 20,
-    backgroundColor: '#4195e9ff',
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
+    backgroundColor: '#86e7dfff',
+    borderBottomLeftRadius: 10,
+    borderBottomRightRadius: 10,
     elevation: 8,
   },
   backButton: { padding: 8 },
@@ -345,7 +353,7 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     overflow: 'hidden',
     marginHorizontal: 20,
-    marginTop: -60,
+    marginTop: 10,
     elevation: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 10 },
@@ -360,10 +368,9 @@ const styles = StyleSheet.create({
 
   // CARD PRINCIPAL
   infoCard: {
-    backgroundColor: '#fff',
-    marginHorizontal: 20,
+    backgroundColor: '#daf3e9ff',
+    marginHorizontal: 17,
     marginTop: -40,
-    borderRadius: 28,
     padding: 24,
     elevation: 10,
     shadowColor: '#000',
@@ -377,7 +384,7 @@ const styles = StyleSheet.create({
   ratingText: { fontSize: 16, fontWeight: '600', color: '#333' },
 
   productName: { fontSize: 26, fontWeight: 'bold', color: '#1a1a1a', marginBottom: 8 },
-  productPrice: { fontSize: 28, fontWeight: 'bold', color: '#FF6B35', marginBottom: 20 },
+  productPrice: { fontSize: 28, fontWeight: 'bold', color: '#e9c6c6ff', marginBottom: 20 },
 
   tiendaCard: {
     flexDirection: 'row',

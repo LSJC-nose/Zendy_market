@@ -239,7 +239,7 @@ export default function Home() {
                           producto: {
                             ...prod,
                             image: { uri: p.imagen || prod.imagen },
-                            descripcion: p.nombre,
+                            descripcion: prod.descripcion || p.nombre || prod.nombre,
                             precio: p.precio,
                             rating: prod.rating || 4.5,
                           }

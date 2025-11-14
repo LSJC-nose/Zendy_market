@@ -20,6 +20,12 @@ const FormularioRegistrarProducto = ({
                     value={productoForm.nombre}
                     onChangeText={(nombre) => manejoCambio('nombre', nombre)}
                 />
+                 <TextInput
+                    style={styles.input}
+                    placeholder="Descripcion del producto"
+                    value={productoForm.descripcion}
+                    onChangeText={(descripcion) => manejoCambio('descripcion', descripcion)}
+                />
                 <TextInput
                     style={styles.input}
                     placeholder="Precio venta"

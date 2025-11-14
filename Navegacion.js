@@ -30,6 +30,7 @@ import RegistrarUsuarios from './src/Screens/RegistrarUsuarios.js';
 import GestionÓrdenes from './src/Componentes/GestionÓrdenes.js';
 import CheckoutScreen from './src/Screens/CheckoutScreen.js';
 import ReporteSuperAdmin from './src/Screens/ReportesSuperAdmin.js';
+import MetodoPagoAdmin from './src/Screens/MetodoPagoAdmin.js';
 
 // Declaración de navegadores
 const Tab = createBottomTabNavigator();
@@ -71,7 +72,7 @@ function StackHomeCliente() {
             <StackNav.Screen name="DetalleProducto" component={DetalleProductoScreen} />
             <StackNav.Screen name="CategoriaSeleccionada" component={CategoriaSeleccionada} />
             <StackNav.Screen name="CheckoutScreen" component={CheckoutScreen} />
-
+            <StackNav.Screen name="MetodoPagoAdmin" component={MetodoPagoAdmin} />  
             
         </StackNav.Navigator>
     );
@@ -227,6 +228,7 @@ function StackLogin() {
             <StackNav.Screen name="Checkout" component={CheckoutScreen} />
             <StackNav.Screen name="GestionÓrdenes" component={GestionÓrdenes} />
             <StackNav.Screen name="DetalleProductoScreen" component={DetalleProductoScreen} />
+            <StackNav.Screen name="MetodoPagoAdmin" component={MetodoPagoAdmin} />
 
         </StackNav.Navigator>
     );

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useCart } from '../Componentes/Carrito';
 import { db } from '../database/firebaseConfig';
-import { addDoc, collection } from 'firebase/firestore';
+import { addDoc, collection, getDoc, doc } from 'firebase/firestore';
 import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, Alert } from 'react-native';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import Fontisto from '@expo/vector-icons/Fontisto';
@@ -26,10 +26,20 @@ export default function PagosClientes() {
         try {
             // Guardar cada producto del carrito como una compra individual
             for (const item of cartItems) {
+                // Obtener precioCompra del producto si existe
+                let precioCompra = 0;
+                try {
+                    const prodSnap = await getDoc(doc(db, 'productos', item.id));
+                    if (prodSnap.exists()) precioCompra = prodSnap.data().precioCompra ?? 0;
+                } catch (e) {
+                    console.warn('No se pudo obtener precioCompra del producto', item.id, e);
+                }
+
                 await addDoc(collection(db, 'ventas'), {
                     metodoPago: selectedMethod,
                     nombreProducto: item.name,
                     precio: item.price,
+                    precioCompra: precioCompra,
                     cantidad: item.quantity,
                     tiendaId: item.tiendaId,
                     fecha: new Date(),

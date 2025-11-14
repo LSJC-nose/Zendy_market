@@ -3,6 +3,15 @@ import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Image } from 'rea
 import BotonEliminarProducto from '../Componentes/BotonEliminarProducto';
 
 const TablaProductos = ({ productos, eliminarProducto, editarProducto }) => {
+    const productosList = Array.isArray(productos) ? productos : [];
+
+    const formatPrice = (v) => {
+        if (v === undefined || v === null || v === '') return '-';
+        const num = Number(v);
+        if (Number.isNaN(num)) return v;
+        return num.toLocaleString('es-ES', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 });
+    };
+
     return (
         <View style={styles.container}>
             <Text style={styles.titulo}>Tabla de Productos</Text>
@@ -12,6 +21,7 @@ const TablaProductos = ({ productos, eliminarProducto, editarProducto }) => {
                     {/* Encabezado */}
                     <View style={[styles.fila, styles.encabezado]}>
                         <Text style={[styles.celda, styles.textoEncabezado, styles.colNombre]}>Nombre</Text>
+                        <Text style={[styles.celda, styles.textoEncabezado, styles.colDescripcion]}>Descripción</Text>
                         <Text style={[styles.celda, styles.textoEncabezado, styles.colPrecio]}>Venta</Text>
                         <Text style={[styles.celda, styles.textoEncabezado, styles.colPrecio]}>Compra</Text>
                         <Text style={[styles.celda, styles.textoEncabezado, styles.colStock]}>Stock</Text>
@@ -21,38 +31,45 @@ const TablaProductos = ({ productos, eliminarProducto, editarProducto }) => {
                     </View>
 
                     {/* Lista de productos */}
-                    <ScrollView style={{ maxHeight: 400 }}>
-                        {productos.map((item) => (
-                            <View key={item.id} style={styles.fila}>
-                                <Text style={[styles.celda, styles.colNombre]}>{item.nombre}</Text>
-                                <Text style={[styles.celda, styles.colPrecio]}>${item.precio}</Text>
-                                <Text style={[styles.celda, styles.colPrecio]}>${item.precioCompra}</Text>
-                                <Text style={[styles.celda, styles.colStock]}>{item.stock}</Text>
-                                <Text style={[styles.celda, styles.colCategoria]}>{item.Categoria}</Text>
-                                <View style={[styles.celda, styles.colImagen]}>
-                                    {item.imagen ? (
-                                        <Image
-                                            source={{ uri: item.imagen }}
-                                            style={styles.imagen}
-                                        />
-                                    ) : (
-                                        <Text>No imagen</Text>
-                                    )}
-                                </View>
-                                <View style={[styles.celdaAcciones, styles.colAcciones]}>
-                                    <BotonEliminarProducto
-                                        id={item.id}
-                                        eliminarProducto={eliminarProducto}
-                                    />
-                                    <TouchableOpacity
-                                        style={styles.botonActualizar}
-                                        onPress={() => editarProducto(item)}
-                                    >
-                                        <Text>🖊️</Text>
-                                    </TouchableOpacity>
-                                </View>
+                    <ScrollView style={{ maxHeight: 420 }}>
+                        {productosList.length === 0 ? (
+                            <View style={styles.emptyRow}>
+                                <Text style={styles.emptyText}>No hay productos</Text>
                             </View>
-                        ))}
+                        ) : (
+                            productosList.map((item, idx) => (
+                                <View key={item.id} style={[styles.fila, idx % 2 === 0 ? styles.rowEven : styles.rowOdd]}>
+                                    <Text style={[styles.celda, styles.colNombre]} numberOfLines={1}>{item.nombre || '-'}</Text>
+                                    <Text style={[styles.celda, styles.colDescripcion]} numberOfLines={2} ellipsizeMode="tail">{item.descripcion || '-'}</Text>
+                                    <Text style={[styles.celda, styles.colPrecio]}>{formatPrice(item.precio)}</Text>
+                                    <Text style={[styles.celda, styles.colPrecio]}>{formatPrice(item.precioCompra)}</Text>
+                                    <Text style={[styles.celda, styles.colStock]}>{item.stock === 0 ? 'Agotado' : (item.stock ?? '-')}</Text>
+                                    <Text style={[styles.celda, styles.colCategoria]}>{item.Categoria || item.categoria || '-'}</Text>
+                                    <View style={[styles.celda, styles.colImagen]}>
+                                        {item.imagen ? (
+                                            <Image
+                                                source={{ uri: item.imagen }}
+                                                style={styles.imagen}
+                                            />
+                                        ) : (
+                                            <Image source={require('../../assets/icon.png')} style={styles.imagen} />
+                                        )}
+                                    </View>
+                                    <View style={[styles.celdaAcciones, styles.colAcciones]}>
+                                        <BotonEliminarProducto
+                                            id={item.id}
+                                            eliminarProducto={eliminarProducto}
+                                        />
+                                        <TouchableOpacity
+                                            style={styles.botonActualizar}
+                                            onPress={() => editarProducto(item)}
+                                        >
+                                            <Text>🖊️</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
+                            ))
+                        )}
                     </ScrollView>
                 </View>
             </ScrollView>
@@ -110,9 +127,15 @@ const styles = StyleSheet.create({
         alignSelf: 'center'
     },
 
+    colDescripcion: { width: 200 },
+    rowEven: { backgroundColor: '#ffffff' },
+    rowOdd: { backgroundColor: '#fbfdfe' },
+    emptyRow: { padding: 23, alignItems: 'center' },
+    emptyText: { color: '#6b7280' },
+
     // Column widths
     colNombre: { width: 120 },
-    colPrecio: { width: 80 },
+    colPrecio: { width: 89 },
     colStock: { width: 80 },
     colCategoria: { width: 100 },
     colImagen: { width: 80 },

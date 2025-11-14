@@ -93,7 +93,13 @@ export default function CRUDAdmon() {
 
         unsubVentas = onSnapshot(qVentas, (snapshot) => {
           const ventas = snapshot.docs.map(d => d.data());
-          const ganancias = ventas.reduce((sum, v) => sum + (v.precio * v.cantidad), 0);
+          // Calcular ganancias netas considerando precioCompra cuando exista
+          const ganancias = ventas.reduce((sum, v) => {
+            const precioVenta = parseFloat(v.precio) || 0;
+            const precioCompra = parseFloat(v.precioCompra) || 0;
+            const cantidad = parseFloat(v.cantidad) || 0;
+            return sum + ((precioVenta - precioCompra) * cantidad);
+          }, 0);
 
           setStats(prev => [
             prev[0],
@@ -122,7 +128,7 @@ export default function CRUDAdmon() {
           let ordenesTotales = 0;
           snapshot.docs.forEach(doc => {
             const productos = doc.data().productos || [];
-            const tieneMiTienda = productos.some(p => 
+            const tieneMiTienda = productos.some(p =>
               p.tiendaId && tiendasUsuario.includes(p.tiendaId)
             );
             if (tieneMiTienda) ordenesTotales++;
@@ -152,7 +158,7 @@ export default function CRUDAdmon() {
     };
   }, []);
 
- const quick = [
+  const quick = [
     { id: 'q1', icon: '🛍️', label: 'Mis Órdenes', key: 'orders' },
     { id: 'q2', icon: '💖', label: 'Favoritos', key: 'favorites' },
     { id: 'q3', icon: '📦', label: 'Gestión Órdenes', key: 'orders' },
@@ -168,6 +174,12 @@ export default function CRUDAdmon() {
   const onQuick = (k) => {
     if (k === 'orders') {
       navigation.navigate('GestionÓrdenes');
+    } else if (k === 'favorites') {
+       navigation.navigate('MetodoPagoAdmin');
+    } else if (k === 'favorites') {
+      navigation.navigate('Favoritos');
+    } else if (k === 'payments') {
+      navigation.navigate('MetodoPagoAdmin');
     }
   };
 
@@ -258,7 +270,6 @@ export default function CRUDAdmon() {
             )}
           />
         </View>
-
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Text style={styles.logoutText}>Cerrar Sesión</Text>
         </TouchableOpacity>
