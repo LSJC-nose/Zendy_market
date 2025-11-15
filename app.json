@@ -36,11 +36,14 @@
       "favicon": "./assets/logo_zendy.png"
     },
     "extra": {
-      "eas": {
-        "projectId": "255cfcc5-57b2-43e1-b0a9-c50e9a7eb879"
-      }
       
+      "eas": {
+        "projectId": "796e72ea-125a-4ae7-964b-16791f5b10ab"
+      }
     },
-    "owner": "santis"
+    "owner": "santis",
+    "eas": {
+      "projectId": "796e72ea-125a-4ae7-964b-16791f5b10ab"
+    }
   }
 }
