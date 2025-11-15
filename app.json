@@ -2,7 +2,6 @@
   "expo": {
     "name": "ZendyMarket",
     "slug": "zendymarket",
-    "projectId": "255cfcc5-57b2-43e1-b0a9-c50e9a7eb879",
     "platforms": [
       "ios",
       "android"
@@ -18,7 +17,8 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.zendymarket.app"
     },
     "android": {
       "adaptiveIcon": {
@@ -30,20 +30,11 @@
         "notification": {
           "channelId": "default"
         }
-      }
+      },
+      "package": "com.zendymarket.app"
     },
     "web": {
       "favicon": "./assets/logo_zendy.png"
-    },
-    "extra": {
-      
-      "eas": {
-        "projectId": "796e72ea-125a-4ae7-964b-16791f5b10ab"
-      }
-    },
-    "owner": "santis",
-    "eas": {
-      "projectId": "796e72ea-125a-4ae7-964b-16791f5b10ab"
     }
   }
 }

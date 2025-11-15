@@ -1,15 +1,10 @@
 import 'dotenv/config';
 
 export default ({ config }) => {
+  
   const expo = {
     ...config.expo,
-    android: {
-      ...(config.expo?.android || {}),
-      package: process.env.ANDROID_PACKAGE || 'com.ZendyMarket.tuapp'
-    },
-    eas: {
-      projectId: process.env.EAS_PROJECT_ID || 'e835aca7-65d2-4716-bda3-55345b6b6ed6'
-    },
+   
     extra: {
       ...(config.expo?.extra || {}),
       FIREBASE_API_KEY: process.env.FIREBASE_API_KEY,
