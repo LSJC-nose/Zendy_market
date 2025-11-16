@@ -5,3 +5,5 @@ npm i react-native-chart-kit
 npm install @react-native-picker/picke
 
 npm install -g expo-cli
+
+npm i expo-document-picker

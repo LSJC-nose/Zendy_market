@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { View, StyleSheet, TouchableOpacity, Text, Image } from "react-native";
+import { View, StyleSheet, TouchableOpacity, Text, Image, Button } from "react-native";
 import Entypo from '@expo/vector-icons/Entypo';
 import ModalRegistrarTienda from '../Componentes/ModalRegistrarTienda.js';
 import TarjetaTienda from "../Componentes/TarjetaTienda.js";
-import { collection, getDocs, deleteDoc, doc, query, where, getDoc } from "firebase/firestore";
+import { collection, getDocs, deleteDoc, doc, query, where, getDoc, addDoc } from "firebase/firestore";
 import { db, auth } from "../database/firebaseConfig.js";
 import { onAuthStateChanged } from 'firebase/auth';
+import * as DocumentPicker from "expo-document-picker";
+import { Alert } from "react-native";
+import * as FileSystem from "expo-file-system/legacy";
 
 
 export default function Tienda() {
@@ -85,6 +88,96 @@ export default function Tienda() {
     };
 
 
+const extraerYGuardarTiendas = async () => {
+  try {
+    // Abrir selector de documentos para elegir archivo Excel
+    const result = await DocumentPicker.getDocumentAsync({
+      type: [
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "application/vnd.ms-excel",
+      ],
+      copyToCacheDirectory: true,
+    });
+
+    if (result.canceled || !result.assets || result.assets.length === 0) {
+      Alert.alert("Cancelado", "No se seleccionó ningún archivo.");
+      return;
+    }
+
+    const { uri, name } = result.assets[0];
+    console.log(`Archivo seleccionado: ${name} en ${uri}`);
+
+    // Leer archivo como base64
+    const base64 = await FileSystem.readAsStringAsync(uri, {
+      encoding: FileSystem.EncodingType.Base64,
+    });
+
+    // Enviar a Lambda
+    const response = await fetch("https://thzg0v3rj9.execute-api.us-east-1.amazonaws.com/extraerexcel", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ archivoBase64: base64 }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error HTTP en Lambda: ${response.status}`);
+    }
+
+    const body = await response.json();
+    const { datos } = body;
+
+    if (!datos || !Array.isArray(datos) || datos.length === 0) {
+      Alert.alert("Error", "No se encontraron datos en el Excel o el archivo está vacío.");
+      return;
+    }
+
+    console.log("Datos extraídos del Excel:", datos);
+
+    // Guardar en Firestore
+    let guardados = 0;
+    let errores = 0;
+
+    for (const tienda of datos) {
+      try {
+        // Validación mínima para evitar guardar basura (descartar foto si existe)
+        if (!tienda.nombre) {
+          console.log("Fila inválida, se ignora:", tienda);
+          continue;
+        }
+
+        // Preparar datos, descartando foto
+        const datosTienda = {
+          nombre: tienda.nombre || "",
+          admin: tienda.admin || "",
+          // foto: descartada, no se incluye
+          // fechaCreacion: se puede agregar serverTimestamp() si es un campo de Firestore con timestamp automático
+        };
+
+        await addDoc(collection(db, "tiendas"), datosTienda);
+
+        guardados++;
+      } catch (err) {
+        console.error("Error guardando tienda:", tienda, err);
+        errores++;
+      }
+    }
+
+    Alert.alert(
+      "Éxito",
+      `Se guardaron ${guardados} tiendas. Errores: ${errores}.`,
+      [{ text: "OK" }]
+    );
+
+  } catch (error) {
+    console.error("Error en extraerYGuardarTiendas:", error);
+    Alert.alert("Error", `Error procesando el Excel: ${error.message}`);
+  }
+};
+
+
+
     return (
         <View style={styles.container}>
             <TouchableOpacity style={styles.registrarTienda} onPress={() => setModalVisible(true)}>
@@ -97,9 +190,13 @@ export default function Tienda() {
                 recargarTiendas={cargarDatos}
 
             />
-            <TarjetaTienda
+ <TarjetaTienda
                 eliminarTienda={eliminarTienda}
                 tienda={tiendas} />
+            <View style={{ marginVertical: 10, padding: 10, margin: 10 }}>
+                <Button title="Insertar datos desde archivo excel" onPress={extraerYGuardarTiendas} />
+
+            </View>
         </View>
     );
 }
