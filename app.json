@@ -4,7 +4,8 @@
     "slug": "zendymarket",
     "platforms": [
       "ios",
-      "android"
+      "android",
+      "web"
     ],
     "version": "1.0.0",
     "orientation": "portrait",
@@ -21,10 +22,7 @@
       "bundleIdentifier": "com.zendymarket.app"
     },
     "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/logo_zendy.png",
-        "backgroundColor": "#ffffff"
-      },
+      "icon": "./assets/logo_zendy.png",
       "edgeToEdgeEnabled": true,
       "config": {
         "notification": {
@@ -35,6 +33,12 @@
     },
     "web": {
       "favicon": "./assets/logo_zendy.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "66aa1b56-21bb-479e-b061-106b67ae7ffe"
+      }
+    },
+    "owner": "lsjc"
   }
 }

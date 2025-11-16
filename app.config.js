@@ -1,28 +1,74 @@
-import 'dotenv/config';
+const dotenv = require('dotenv');
+dotenv.config();
 
-export default ({ config }) => {
-  
+module.exports = ({ config }) => {
+  const baseExpo = config.expo || {};
+
   const expo = {
-    ...config.expo,
-   
+    ...baseExpo,
+
     extra: {
-      ...(config.expo?.extra || {}),
-      FIREBASE_API_KEY: process.env.FIREBASE_API_KEY,
-      FIREBASE_AUTH_DOMAIN: process.env.FIREBASE_AUTH_DOMAIN,
-      FIREBASE_PROJECT_ID: process.env.FIREBASE_PROJECT_ID,
-      FIREBASE_STORAGE_BUCKET: process.env.FIREBASE_STORAGE_BUCKET,
-      FIREBASE_MESSAGING_SENDER_ID: process.env.FIREBASE_MESSAGING_SENDER_ID,
-      FIREBASE_APP_ID: process.env.FIREBASE_APP_ID,
-      FIREBASE_MEASUREMENT_ID: process.env.FIREBASE_MEASUREMENT_ID
+      ...(baseExpo.extra || {}),
+      eas: {
+        ...(baseExpo.extra?.eas || {}),
+
+        projectId:
+          process.env.EAS_PROJECT_ID ||
+          baseExpo.extra?.eas?.projectId ||
+          '66aa1b56-21bb-479e-b061-106b67ae7ffe'
+      },
+      FIREBASE_API_KEY:
+        process.env.EXPO_PUBLIC_FIREBASE_API_KEY ||
+        process.env.FIREBASE_API_KEY ||
+        baseExpo.extra?.FIREBASE_API_KEY,
+      FIREBASE_AUTH_DOMAIN:
+        process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN ||
+        process.env.FIREBASE_AUTH_DOMAIN ||
+        baseExpo.extra?.FIREBASE_AUTH_DOMAIN,
+      FIREBASE_PROJECT_ID:
+        process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID ||
+        process.env.FIREBASE_PROJECT_ID ||
+        baseExpo.extra?.FIREBASE_PROJECT_ID,
+      FIREBASE_STORAGE_BUCKET:
+        process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET ||
+        process.env.FIREBASE_STORAGE_BUCKET ||
+        baseExpo.extra?.FIREBASE_STORAGE_BUCKET,
+      FIREBASE_MESSAGING_SENDER_ID:
+        process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID ||
+        process.env.FIREBASE_MESSAGING_SENDER_ID ||
+        baseExpo.extra?.FIREBASE_MESSAGING_SENDER_ID,
+      FIREBASE_APP_ID:
+        process.env.EXPO_PUBLIC_FIREBASE_APP_ID ||
+        process.env.FIREBASE_APP_ID ||
+        baseExpo.extra?.FIREBASE_APP_ID,
+      FIREBASE_MEASUREMENT_ID:
+        process.env.EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID ||
+        process.env.FIREBASE_MEASUREMENT_ID ||
+        baseExpo.extra?.FIREBASE_MEASUREMENT_ID
     },
     cli: {
-      ...(config.expo?.cli || {}),
+      ...(baseExpo.cli || {}),
       appVersionSource: 'manifest'
     }
   };
 
+  // Ensure package / bundle identifiers are present for EAS builds.
+  expo.android = {
+    ...(baseExpo.android || {}),
+    package:
+      process.env.ANDROID_PACKAGE || baseExpo.android?.package || 'com.lsjc.zendymarket'
+  };
+
+  expo.ios = {
+    ...(baseExpo.ios || {}),
+    bundleIdentifier:
+      process.env.IOS_BUNDLE_IDENTIFIER || baseExpo.ios?.bundleIdentifier || 'com.lsjc.zendymarket'
+  };
+
   return {
     ...config,
-    expo
+    expo,
+    // Set owner at the root of the config so EAS can read it (can be overridden via env var)
+    owner: process.env.EXPO_OWNER || config.owner || 'lsjc'
   };
 };
