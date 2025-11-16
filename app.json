@@ -19,17 +19,12 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.zendymarket.app"
+      "bundleIdentifier": "com.lsjc.zendymarket"
     },
     "android": {
       "icon": "./assets/logo_zendy.png",
       "edgeToEdgeEnabled": true,
-      "config": {
-        "notification": {
-          "channelId": "default"
-        }
-      },
-      "package": "com.zendymarket.app"
+      "package": "com.lsjc.zendymarket"
     },
     "web": {
       "favicon": "./assets/logo_zendy.png"

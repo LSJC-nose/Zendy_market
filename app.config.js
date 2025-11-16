@@ -53,16 +53,20 @@ module.exports = ({ config }) => {
   };
 
   // Ensure package / bundle identifiers are present for EAS builds.
+  
+  // Define package and bundle identifier consistently
+  const BUNDLE_IDENTIFIER = 'com.lsjc.zendymarket';
+  const PACKAGE = 'com.lsjc.zendymarket';
+  
   expo.android = {
     ...(baseExpo.android || {}),
-    package:
-      process.env.ANDROID_PACKAGE || baseExpo.android?.package || 'com.lsjc.zendymarket'
+    package: process.env.ANDROID_PACKAGE || PACKAGE,
+    versionCode: baseExpo.version ? parseInt(baseExpo.version.replace(/\./g, '')) : 1
   };
 
   expo.ios = {
     ...(baseExpo.ios || {}),
-    bundleIdentifier:
-      process.env.IOS_BUNDLE_IDENTIFIER || baseExpo.ios?.bundleIdentifier || 'com.lsjc.zendymarket'
+    bundleIdentifier: process.env.IOS_BUNDLE_IDENTIFIER || BUNDLE_IDENTIFIER
   };
 
   return {
