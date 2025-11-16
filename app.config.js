@@ -46,10 +46,11 @@ module.exports = ({ config }) => {
         process.env.FIREBASE_MEASUREMENT_ID ||
         baseExpo.extra?.FIREBASE_MEASUREMENT_ID
     },
-    cli: {
-      ...(baseExpo.cli || {}),
-      appVersionSource: 'manifest'
-    }
+    // Note: Do not include a top-level `cli` property here. Including `expo.cli`
+    // in the resolved app config causes schema validation errors ("should NOT have
+    // additional property 'cli'") when running `expo doctor` or during EAS builds.
+    // If you need to record an app version source for internal use, prefer using
+    // `extra` or environment variables.
   };
 
   // Ensure package / bundle identifiers are present for EAS builds.
