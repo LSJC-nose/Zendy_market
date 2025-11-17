@@ -18,6 +18,7 @@ const firebaseConfig = {
   measurementId: process.env.EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID
 };
 
+
 // Inicializar Firebase
 const app = initializeApp(firebaseConfig);
 
@@ -27,6 +28,8 @@ const auth = initializeAuth(app, {
     ? browserLocalPersistence
     : getReactNativePersistence(ReactNativeAsyncStorage)
 });
+
 const db = getFirestore(app);
+
 
 export { app, auth, db };
