@@ -88,7 +88,7 @@ const ModalRegistrarTienda = ({ modalVisible, setModalVisible, recargarTiendas }
     };
 
     const guardarTienda = async () => {
-        //const datosValidados = await validarDatos({ nuevaTienda });
+        // const datosValidados = await validarDatos({ nuevaTienda });
 
         //if (datosValidados) {
             try {

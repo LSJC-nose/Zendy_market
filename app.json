@@ -1,37 +1,35 @@
 {
   "expo": {
     "name": "ZendyMarket",
-    "slug": "zendymarket-nnfe-w-33kd7si-lixg2e",
-    "platforms": [
-      "ios",
-      "android",
-      "web"
-    ],
+    "slug": "ZendyMarket",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/logo_zendy.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": false,
+    "newArchEnabled": true,
     "splash": {
       "image": "./assets/logo_zendy.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.lsjc.zendymarket"
+      "supportsTablet": true
     },
     "android": {
-      "icon": "./assets/logo_zendy.png",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/logo_zendy.png",
+        "backgroundColor": "#ffffff"
+      },
       "edgeToEdgeEnabled": true,
-      "package": "com.zendymarket.tuapp"
+      "package": "com.zendymarket.ZendyMarket"
     },
     "web": {
       "favicon": "./assets/logo_zendy.png"
     },
     "extra": {
-      "projectId": "b21372e0-2fcc-4e94-8b2d-90c0e31234cf"
-    },
-    "owner": "lsjc"
+      "eas": {
+        "projectId": "195ba0eb-103a-4c96-a947-c9d8aa7b1c99"
+      }
+    }
   }
 }
